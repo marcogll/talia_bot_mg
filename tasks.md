@@ -29,7 +29,7 @@ This file tracks the development tasks for the Talía project.
 
 ## Phase 4: Integrations
 
-- [ ] Implement `calendar.py` for Google Calendar integration.
+- [x] Implement `calendar.py` for Google Calendar integration.
 - [ ] Implement `llm.py` for AI-powered responses.
 - [ ] Implement `scheduler.py` for daily summaries.
 
