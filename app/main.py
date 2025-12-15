@@ -28,7 +28,7 @@ from modules.equipo import (
 from modules.aprobaciones import view_pending, handle_approval_action
 from modules.servicios import get_service_info
 from modules.admin import get_system_status
-from app.scheduler import setup_scheduler
+from modules.print import print_handler
 
 # Enable logging
 logging.basicConfig(
@@ -104,9 +104,6 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("print", print_handler))
     application.add_handler(CallbackQueryHandler(button_dispatcher))
-
-    # Set up the scheduler
-    setup_scheduler(application)
 
     logger.info("Starting Talía Bot...")
     application.run_polling()

@@ -1,52 +1,27 @@
 # app/scheduler.py
 
-import datetime
-import pytz
-from telegram import Bot
-from app.config import OWNER_CHAT_ID, TIMEZONE
-from app.calendar import get_events_for_day
+import schedule
+import time
+from datetime import datetime
 
+from config import TIMEZONE
 
-def format_event_time(start_time_str):
-    """
-    Formats the event start time into a user-friendly format.
-    """
-    if "T" in start_time_str:  # It's a dateTime
-        dt_object = datetime.datetime.fromisoformat(start_time_str)
-        return dt_object.strftime("%I:%M %p")
-    else:  # It's a date
-        return "All day"
-
-
-async def send_daily_summary(context):
+def send_daily_summary():
     """
     Sends the daily summary to the owner.
     """
-    bot = context.bot
-    today = datetime.datetime.now(pytz.timezone(TIMEZONE)).date()
-    events = get_events_for_day(today)
+    print(f"[{datetime.now()}] Sending daily summary...")
+    # TODO: Implement the logic to fetch and send the summary
 
-    if not events:
-        summary = "Good morning! You have no events scheduled for today."
-    else:
-        summary = "Good morning! Here is your schedule for today:\n\n"
-        for event in events:
-            start = event["start"].get("dateTime", event["start"].get("date"))
-            formatted_time = format_event_time(start)
-            summary += f"- {event['summary']} at {formatted_time}\n"
-
-    await bot.send_message(chat_id=OWNER_CHAT_ID, text=summary)
-
-
-def setup_scheduler(application):
+def main():
     """
-    Sets up the daily summary job.
+    Main function to run the scheduler.
     """
-    tz = pytz.timezone(TIMEZONE)
-    job_queue = application.job_queue
-    job_queue.run_daily(
-        send_daily_summary,
-        time=datetime.time(hour=7, minute=0, tzinfo=tz),
-        chat_id=OWNER_CHAT_ID,
-        name="daily_summary",
-    )
+    schedule.every().day.at("07:00").do(send_daily_summary)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+if __name__ == "__main__":
+    main()
