@@ -6,7 +6,14 @@ def get_owner_menu():
     keyboard = [
         [InlineKeyboardButton("📅 Ver mi agenda", callback_data='view_agenda')],
         [InlineKeyboardButton("⏳ Ver pendientes", callback_data='view_pending')],
-        [InlineKeyboardButton("✅ Aprobar solicitud", callback_data='approve_request')],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+def get_admin_menu():
+    """Returns the main menu for an admin."""
+    keyboard = [
+        [InlineKeyboardButton("📊 Ver estado del sistema", callback_data='view_system_status')],
+        [InlineKeyboardButton("👥 Gestionar usuarios", callback_data='manage_users')],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -34,7 +41,9 @@ def handle_start(user_role):
 
     if user_role == "owner":
         menu = get_owner_menu()
-    elif user_role in ["admin", "team"]:
+    elif user_role == "admin":
+        menu = get_admin_menu()
+    elif user_role == "team":
         menu = get_team_menu()
     else: # client
         menu = get_client_menu()

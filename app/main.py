@@ -27,6 +27,7 @@ from modules.equipo import (
 )
 from modules.aprobaciones import view_pending, handle_approval_action
 from modules.servicios import get_service_info
+from modules.admin import get_system_status
 
 # Enable logging
 logging.basicConfig(
@@ -45,29 +46,37 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await update.message.reply_text(response_text, reply_markup=reply_markup)
 
-async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Parses the CallbackQuery and calls the appropriate module for simple actions."""
+async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Parses the CallbackQuery and routes it to the appropriate handler."""
     query = update.callback_query
     await query.answer()
-    logger.info(f"Button handler received callback query: {query.data}")
+    logger.info(f"Dispatcher received callback query: {query.data}")
 
+    # Default response if no handler is found
     response_text = "Acción no reconocida."
     reply_markup = None
 
-    if query.data.startswith(('approve:', 'reject:')):
+    # Simple callbacks that return a string
+    simple_handlers = {
+        'view_agenda': get_agenda,
+        'view_requests_status': view_requests_status,
+        'schedule_appointment': request_appointment,
+        'get_service_info': get_service_info,
+        'view_system_status': get_system_status,
+        'manage_users': lambda: "Función de gestión de usuarios no implementada.",
+    }
+
+    # Callbacks that return a tuple (text, reply_markup)
+    complex_handlers = {
+        'view_pending': view_pending,
+    }
+
+    if query.data in simple_handlers:
+        response_text = simple_handlers[query.data]()
+    elif query.data in complex_handlers:
+        response_text, reply_markup = complex_handlers[query.data]()
+    elif query.data.startswith(('approve:', 'reject:')):
         response_text = handle_approval_action(query.data)
-    elif query.data == 'view_pending':
-        response_text, reply_markup = view_pending()
-    else:
-        simple_callbacks = {
-            'view_agenda': get_agenda,
-            'view_requests_status': view_requests_status,
-            'schedule_appointment': request_appointment,
-            'get_service_info': get_service_info,
-        }
-        handler_func = simple_callbacks.get(query.data)
-        if handler_func:
-            response_text = handler_func()
 
     await query.edit_message_text(text=response_text, reply_markup=reply_markup, parse_mode='Markdown')
 
@@ -92,7 +101,7 @@ def main() -> None:
 
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button))
+    application.add_handler(CallbackQueryHandler(button_dispatcher))
 
     logger.info("Starting Talía Bot...")
     application.run_polling()

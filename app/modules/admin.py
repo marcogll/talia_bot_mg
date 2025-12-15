@@ -1,9 +1,15 @@
 # app/modules/admin.py
 
-def perform_admin_action(action, target):
+def get_system_status():
     """
-    Performs an administrative action.
+    Returns the current status of the bot and its integrations.
     """
-    print(f"Performing admin action '{action}' on '{target}'")
-    # TODO: Implement administrative actions
-    return "Admin action completed."
+    # TODO: Implement real-time status checks
+    status_text = (
+        "📊 *Estado del Sistema*\n\n"
+        "- *Bot Principal:* Activo ✅\n"
+        "- *Conexión Telegram API:* Estable ✅\n"
+        "- *Integración n8n:* Operacional ✅\n"
+        "- *Google Calendar:* Conectado ✅"
+    )
+    return status_text
