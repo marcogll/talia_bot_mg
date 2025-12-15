@@ -22,8 +22,8 @@ This file tracks the development tasks for the Talía project.
 - [x] Implement `onboarding.py` module.
 - [x] Implement `agenda.py` module.
 - [x] Implement `citas.py` module.
-- [ ] Implement `equipo.py` module.
-- [ ] Implement `aprobaciones.py` module.
+- [x] Implement `equipo.py` module.
+- [x] Implement `aprobaciones.py` module.
 - [ ] Implement `servicios.py` module.
 - [ ] Implement `admin.py` module.
 
@@ -41,3 +41,4 @@ This file tracks the development tasks for the Talía project.
 - Completed initial project scaffolding.
 - Implemented the core logic for the bot, including the central orchestrator, permissions, and onboarding.
 - Implemented the `agenda` and `citas` modules.
+- Implemented the conversational flow for proposing and approving activities.
