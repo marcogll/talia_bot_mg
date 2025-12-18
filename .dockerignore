@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environments and Secrets
+.env
+*.json
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Documentation
+README.md
+docs/
