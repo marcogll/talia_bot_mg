@@ -5,8 +5,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Cargar variables de entorno
-env_path = Path(__file__).parent.parent / '.env'
-load_dotenv(dotenv_path=env_path)
+load_dotenv()
 
 VIKUNJA_API_URL = os.getenv("VIKUNJA_API_URL", "https://tasks.soul23.cloud/api/v1")
 VIKUNJA_API_TOKEN = os.getenv("VIKUNJA_API_TOKEN")

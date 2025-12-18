@@ -33,7 +33,7 @@ from modules.servicios import get_service_info
 from modules.admin import get_system_status
 from modules.print import print_handler
 from modules.create_tag import create_tag_conv_handler, create_tag_start
-from modules.vikunja import get_tasks
+from modules.vikunja import vikunja_conv_handler
 from scheduler import schedule_daily_summary
 
 # Configuramos el sistema de logs para ver mensajes de estado en la consola
@@ -132,17 +132,9 @@ def main() -> None:
     # Registramos todos los manejadores de eventos en la aplicación
     application.add_handler(conv_handler)
     application.add_handler(create_tag_conv_handler())
+    application.add_handler(vikunja_conv_handler())
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("print", print_handler))
-    
-    # Comando /vik restringido a administradores
-    async def vik_command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if is_admin(update.effective_chat.id):
-            await update.message.reply_text(get_tasks(), parse_mode='Markdown')
-        else:
-            await update.message.reply_text("No tienes permiso para usar este comando.")
-            
-    application.add_handler(CommandHandler("vik", vik_command_handler))
     application.add_handler(CallbackQueryHandler(button_dispatcher))
 
     # Iniciamos el bot (se queda escuchando mensajes)
