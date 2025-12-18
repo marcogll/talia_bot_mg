@@ -3,10 +3,13 @@
 # Permite buscar espacios libres y crear eventos.
 
 import datetime
+import logging
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from config import GOOGLE_SERVICE_ACCOUNT_FILE, CALENDAR_ID
+
+logger = logging.getLogger(__name__)
 
 # Configuración de los permisos (SCOPES) para acceder al calendario
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -120,6 +123,7 @@ def get_events(start_time, end_time, calendar_id=CALENDAR_ID):
     Obtiene la lista de eventos entre dos momentos.
     """
     try:
+        logger.info(f"Llamando a la API de Google Calendar para {calendar_id}")
         events_result = (
             service.events()
             .list(
@@ -131,7 +135,12 @@ def get_events(start_time, end_time, calendar_id=CALENDAR_ID):
             )
             .execute()
         )
-        return events_result.get("items", [])
+        events = events_result.get("items", [])
+        logger.info(f"Se obtuvieron {len(events)} eventos de la API.")
+        return events
     except HttpError as error:
-        print(f"Ocurrió un error al obtener eventos: {error}")
+        logger.error(f"Ocurrió un error al obtener eventos: {error}")
+        return []
+    except Exception as e:
+        logger.error(f"Error inesperado al obtener eventos: {e}")
         return []

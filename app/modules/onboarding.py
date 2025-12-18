@@ -55,9 +55,7 @@ def handle_start(user_role):
     """
     welcome_message = "Hola, soy Talía. ¿En qué puedo ayudarte hoy?"
 
-    if user_role == "owner":
-        menu = get_owner_menu()
-    elif user_role == "admin":
+    if user_role in ["owner", "admin"]:
         menu = get_admin_menu()
     elif user_role == "team":
         menu = get_team_menu()

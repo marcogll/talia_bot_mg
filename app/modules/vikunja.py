@@ -13,8 +13,8 @@ from telegram.ext import (
     ContextTypes,
 )
 
-from app.config import VIKUNJA_API_URL, VIKUNJA_API_TOKEN
-from app.permissions import is_admin
+from config import VIKUNJA_API_URL, VIKUNJA_API_TOKEN
+from permissions import is_admin
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
