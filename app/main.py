@@ -29,6 +29,7 @@ from modules.aprobaciones import view_pending, handle_approval_action
 from modules.servicios import get_service_info
 from modules.admin import get_system_status
 from modules.print import print_handler
+from modules.create_tag import create_tag_conv_handler
 from scheduler import schedule_daily_summary
 
 # Enable logging
@@ -105,6 +106,7 @@ def main() -> None:
     )
 
     application.add_handler(conv_handler)
+    application.add_handler(create_tag_conv_handler())
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("print", print_handler))
     application.add_handler(CallbackQueryHandler(button_dispatcher))
