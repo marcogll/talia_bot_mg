@@ -188,6 +188,23 @@ async def universal_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await button_dispatcher(update, context)
 
 
+async def check_print_confirmation_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Job que se ejecuta para verificar la confirmación de impresión.
+    """
+    job = context.job
+    user_id, job_id, file_name = job.data
+
+    logger.info(f"Running print confirmation check for job_id: {job_id}")
+
+    confirmation_data = await asyncio.to_thread(check_for_confirmation, job_id)
+
+    if confirmation_data:
+        await context.bot.send_message(chat_id=user_id, text=f"✅ ¡Éxito! Tu archivo '{file_name}' ha sido impreso correctamente.")
+    else:
+        await context.bot.send_message(chat_id=user_id, text=f"⚠️ El trabajo de impresión para '{file_name}' fue enviado, pero no he recibido una confirmación de la impresora. Por favor, verifica la bandeja de la impresora.")
+
+
 async def handle_flow_resolution(update: Update, context: ContextTypes.DEFAULT_TYPE, result: dict):
     """
     Maneja la acción final de un flujo completado.
@@ -344,14 +361,13 @@ async def handle_flow_resolution(update: Update, context: ContextTypes.DEFAULT_T
                 if success:
                     final_message = f"Recibido. 📨\n\nTu trabajo de impresión ha sido enviado (Job ID: {job_id}). Te notificaré cuando la impresora confirme que ha sido impreso."
 
-                    # Esperar y verificar la confirmación
-                    await asyncio.sleep(60) # Espera de 60 segundos
-                    confirmation_data = await asyncio.to_thread(check_for_confirmation, job_id)
-
-                    if confirmation_data:
-                        await context.bot.send_message(chat_id=user_id, text=f"✅ ¡Éxito! Tu archivo '{file_name}' ha sido impreso correctamente.")
-                    else:
-                        await context.bot.send_message(chat_id=user_id, text=f"⚠️ El trabajo de impresión para '{file_name}' fue enviado, pero no he recibido una confirmación de la impresora. Por favor, verifica la bandeja de la impresora.")
+                    # Programar la verificación en segundo plano
+                    context.job_queue.run_once(
+                        check_print_confirmation_job,
+                        when=60,  # segundos
+                        data=(user_id, job_id, file_name),
+                        name=f"print_job_{job_id}"
+                    )
                 else:
                     final_message = "❌ Hubo un error al enviar el archivo a la impresora."
             else:
