@@ -32,8 +32,18 @@ def setup_database():
             )
         """)
 
+        # Create the conversations table for the flow engine
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conversations (
+                user_id INTEGER PRIMARY KEY,
+                flow_id TEXT NOT NULL,
+                current_step_id INTEGER NOT NULL,
+                collected_data TEXT
+            )
+        """)
+
         conn.commit()
-        logger.info("Database setup complete. 'users' table is ready.")
+        logger.info("Database setup complete. 'users' and 'conversations' tables are ready.")
     except sqlite3.Error as e:
         logger.error(f"Database error during setup: {e}")
     finally:

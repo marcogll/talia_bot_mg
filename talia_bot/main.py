@@ -17,6 +17,7 @@ from telegram.ext import (
 # Importamos las configuraciones y herramientas que creamos en otros archivos
 from talia_bot.config import TELEGRAM_BOT_TOKEN
 from talia_bot.modules.identity import get_user_role
+from talia_bot.modules.flow_engine import FlowEngine
 from talia_bot.modules.onboarding import handle_start as onboarding_handle_start
 from talia_bot.modules.onboarding import get_admin_secondary_menu
 from talia_bot.modules.agenda import get_agenda
@@ -62,14 +63,56 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Respondemos al usuario
     await update.message.reply_text(response_text, reply_markup=reply_markup)
 
+flow_engine = FlowEngine()
+
+async def universal_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Handles all user interactions (text, callbacks, voice, documents).
+    Routes them to the flow engine or legacy handlers.
+    """
+    user_id = update.effective_user.id
+    conversation_state = flow_engine.get_conversation_state(user_id)
+
+    if conversation_state:
+        # User is in an active flow, so we process the response.
+        response_text = update.message.text if update.message else None
+        result = flow_engine.handle_response(user_id, response_text)
+
+        if result['status'] == 'in_progress':
+            await update.message.reply_text(result['step']['message'])
+        elif result['status'] == 'complete':
+            summary = "\n".join([f"- {key}: {value}" for key, value in result['data'].items()])
+            await update.message.reply_text(f"Flow '{result['flow_id']}' completado.\n\nResumen:\n{summary}")
+        else:
+            await update.message.reply_text(result.get('message', 'Ocurrió un error.'))
+    else:
+        # No active flow, check for a callback query to start a new flow or use legacy dispatcher.
+        if update.callback_query:
+            query = update.callback_query
+            await query.answer()
+            flow_to_start = query.data
+
+            # Check if the callback is intended to start a known flow.
+            if flow_engine.get_flow(flow_to_start):
+                initial_step = flow_engine.start_flow(user_id, flow_to_start)
+                if initial_step:
+                    await query.message.reply_text(initial_step['message'])
+            else:
+                # Fallback to the old button dispatcher for legacy actions.
+                await button_dispatcher(update, context)
+        elif update.message and update.message.text:
+            # Handle regular text messages that are not part of a flow (e.g., commands).
+            # For now, we just ignore them if they are not commands.
+            logger.info(f"Received non-flow text message from {user_id}: {update.message.text}")
+
+
 async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Esta función maneja los clics en los botones del menú.
-    Dependiendo de qué botón se presione, ejecuta una acción diferente.
+    Legacy handler for menu button clicks that are not part of a flow.
     """
     query = update.callback_query
-    await query.answer()
-    logger.info(f"El despachador recibió una consulta: {query.data}")
+    # No need to answer here as it's answered in the universal_handler
+    logger.info(f"El despachador legacy recibió una consulta: {query.data}")
 
     response_text = "Acción no reconocida."
     reply_markup = None
@@ -91,33 +134,30 @@ async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     try:
         if query.data in simple_handlers:
             handler = simple_handlers[query.data]
-            logger.info(f"Ejecutando simple_handler para: {query.data}")
             if asyncio.iscoroutinefunction(handler):
                 response_text = await handler()
             else:
                 response_text = handler()
         elif query.data in complex_handlers:
             handler = complex_handlers[query.data]
-            logger.info(f"Ejecutando complex_handler para: {query.data}")
             if asyncio.iscoroutinefunction(handler):
                 response_text, reply_markup = await handler()
             else:
                 response_text, reply_markup = handler()
         elif query.data.startswith(('approve:', 'reject:')):
-            logger.info(f"Ejecutando acción de aprobación: {query.data}")
             response_text = handle_approval_action(query.data)
         elif query.data == 'start_create_tag':
             response_text = "Para crear un tag, por favor usa el comando /create_tag."
         else:
             logger.warning(f"Consulta no manejada por el despachador: {query.data}")
-            await query.edit_message_text(text=response_text)
-            return
+
     except Exception as exc:
         logger.exception(f"Error al procesar la acción {query.data}: {exc}")
         response_text = "❌ Ocurrió un error al procesar tu solicitud. Intenta de nuevo."
         reply_markup = None
 
     await query.edit_message_text(text=response_text, reply_markup=reply_markup, parse_mode='Markdown')
+
 
 def main() -> None:
     """Función principal que arranca el bot."""
@@ -130,10 +170,9 @@ def main() -> None:
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     schedule_daily_summary(application)
 
-    # El orden de los handlers es crucial para que las conversaciones funcionen.
+    # Legacy ConversationHandlers
     application.add_handler(create_tag_conv_handler())
     application.add_handler(vikunja_conv_handler())
-
     conv_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(propose_activity_start, pattern='^propose_activity$')],
         states={
@@ -145,10 +184,13 @@ def main() -> None:
     )
     application.add_handler(conv_handler)
 
+    # Command Handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("print", print_handler))
 
-    application.add_handler(CallbackQueryHandler(button_dispatcher))
+    # Universal Handler for flows and callbacks
+    application.add_handler(CallbackQueryHandler(universal_handler))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, universal_handler))
 
     logger.info("Iniciando Talía Bot...")
     application.run_polling()
