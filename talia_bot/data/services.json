@@ -1,0 +1,22 @@
+[
+  {
+    "service_name": "Web Development for Restaurants",
+    "description": "Custom websites and online ordering systems for restaurants, helping you reach more customers and streamline your operations.",
+    "keywords": ["restaurant", "food", "online ordering", "website", "restaurantes", "comida"]
+  },
+  {
+    "service_name": "Patient Management Systems for Healthcare",
+    "description": "A secure and efficient software solution for managing patient records, appointments, and billing in medical clinics.",
+    "keywords": ["healthcare", "medical", "patient", "clinic", "salud", "médico", "pacientes"]
+  },
+  {
+    "service_name": "Content Creation & Social Media Strategy",
+    "description": "Engaging content packages and social media management to build your brand's online presence and connect with your audience.",
+    "keywords": ["content creation", "social media", "marketing", "branding", "contenido", "redes sociales"]
+  },
+  {
+    "service_name": "General Business Consulting",
+    "description": "Strategic consulting to help you optimize business processes, identify growth opportunities, and improve overall performance.",
+    "keywords": ["business", "consulting", "strategy", "growth", "negocio", "consultoría"]
+  }
+]

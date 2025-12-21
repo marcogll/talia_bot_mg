@@ -32,7 +32,9 @@ El sistema sigue un flujo modular:
 
 ---
 
-## 📋 Flujos de Trabajo (Features)
+## 📋 Flujos de Trabajo Modulares (Features)
+
+El comportamiento del bot se define a través de **flujos de conversación modulares** gestionados por un motor central (`flow_engine.py`). Cada flujo es un archivo `.json` independiente ubicado en `talia_bot/data/flows/`, lo que permite modificar o crear nuevas conversaciones sin alterar el código principal.
 
 ### 1. 👑 Gestión Admin (Proyectos & Identidad)
 
@@ -118,10 +120,11 @@ IMAP_SERVER=imap.hostinger.com
 
 ### 3. Estructura de Datos
 
-Asegúrate de tener los archivos base en `talia_bot/data/`:
+Asegúrate de tener los archivos y directorios base en `talia_bot/data/`:
 *   `servicios.json`: Catálogo de servicios para el RAG de ventas.
 *   `credentials.json`: Credenciales de Google Cloud.
-*   `users.db`: Base de datos SQLite.
+*   `users.db`: Base de datos SQLite que almacena los roles de los usuarios.
+*   `flows/`: Directorio que contiene las definiciones de los flujos de conversación en formato JSON. Cada archivo representa una conversación completa para un rol específico.
 
 ---
 
@@ -130,10 +133,11 @@ Asegúrate de tener los archivos base en `talia_bot/data/`:
 ```text
 talia_bot_mg/
 ├── talia_bot/
-│   ├── main.py              # Entry Point y Router de Identidad
-│   ├── db.py                # Gestión de la base de datos
+│   ├── main.py              # Entry Point y dispatcher principal
+│   ├── db.py                # Gestión de la base de datos SQLite
 │   ├── config.py            # Carga de variables de entorno
 │   ├── modules/
+│   │   ├── flow_engine.py   # Motor de flujos de conversación (lee los JSON)
 │   │   ├── identity.py      # Lógica de Roles y Permisos
 │   │   ├── llm_engine.py    # Cliente OpenAI/Gemini
 │   │   ├── vikunja.py       # API Manager para Tareas
@@ -141,7 +145,8 @@ talia_bot_mg/
 │   │   ├── printer.py       # SMTP/IMAP Loop
 │   │   └── sales_rag.py     # Lógica de Ventas y Servicios
 │   └── data/
-│       ├── servicios.json   # Base de conocimiento
+│       ├── flows/           # Directorio con los flujos de conversación en JSON
+│       ├── servicios.json   # Base de conocimiento para ventas
 │       ├── credentials.json # Credenciales de Google
 │       └── users.db         # Base de datos de usuarios
 ├── .env.example             # Plantilla de variables de entorno

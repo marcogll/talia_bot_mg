@@ -1,0 +1,19 @@
+{
+  "id": "admin_check_agenda",
+  "role": "admin",
+  "trigger_button": "📅 Revisar Agenda",
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "AGENDA_TIMEFRAME",
+      "question": "Consultando el oráculo del tiempo... ⏳",
+      "options": ["📅 Hoy", "🔮 Mañana"]
+    },
+    {
+      "step_id": 1,
+      "variable": "AGENDA_ACTION",
+      "question": "Aquí tienes tu realidad: {CALENDAR_DATA}",
+      "options": ["✅ Todo bien", "🛑 Bloquear Espacio"]
+    }
+  ]
+}

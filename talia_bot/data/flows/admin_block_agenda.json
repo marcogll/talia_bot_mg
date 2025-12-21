@@ -1,0 +1,25 @@
+{
+  "id": "admin_block_agenda",
+  "role": "admin",
+  "trigger_button": "🛑 Bloquear Agenda",
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "BLOCK_DATE",
+      "question": "Necesito bloquear la agenda. ¿Para cuándo?",
+      "options": ["Hoy", "Mañana"]
+    },
+    {
+      "step_id": 1,
+      "variable": "BLOCK_TIME",
+      "question": "Dame el horario exacto que necesitas bloquear (ej. 'de 2pm a 4pm').",
+      "input_type": "text"
+    },
+    {
+      "step_id": 2,
+      "variable": "BLOCK_TITLE",
+      "question": "Finalmente, dame una breve descripción o motivo del bloqueo.",
+      "input_type": "text"
+    }
+  ]
+}

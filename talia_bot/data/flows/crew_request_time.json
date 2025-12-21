@@ -1,0 +1,31 @@
+{
+  "id": "crew_request_time",
+  "role": "crew",
+  "trigger_button": "📅 Solicitar Agenda",
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "REQUEST_TYPE",
+      "question": "Para usar la agenda del estudio, necesito que seas preciso.",
+      "options": ["🎥 Grabación", "🎙️ Locución", "🎬 Edición", "🛠️ Mantenimiento"]
+    },
+    {
+      "step_id": 1,
+      "variable": "REQUEST_DATE",
+      "question": "¿Para cuándo necesitas el espacio?",
+      "options": ["Hoy", "Mañana", "Esta Semana"]
+    },
+    {
+      "step_id": 2,
+      "variable": "REQUEST_TIME",
+      "question": "Dame el horario exacto que necesitas (ej. 'de 10am a 2pm').",
+      "input_type": "text"
+    },
+    {
+      "step_id": 3,
+      "variable": "REQUEST_JUSTIFICATION",
+      "question": "Entendido. Antes de confirmar, necesito que me expliques brevemente el plan o el motivo para justificar el bloqueo del espacio. Puedes escribirlo o enviarme un audio.",
+      "input_type": "text_or_audio"
+    }
+  ]
+}
