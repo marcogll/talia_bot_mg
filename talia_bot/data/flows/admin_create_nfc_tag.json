@@ -19,7 +19,7 @@
       "step_id": 2,
       "variable": "BRANCH",
       "question": "Entendido. Ahora, por favor, selecciona la sucursal:",
-      "options": ["🏢 Oficina Principal", "📦 Almacén", "🚚 Logística"]
+      "options": ["🏢 Oficina", "📢 Aura Mkt", "💅 Vanity"]
     },
     {
       "step_id": 3,
