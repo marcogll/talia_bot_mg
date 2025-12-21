@@ -29,6 +29,30 @@ def get_vikunja_headers():
         "Content-Type": "application/json",
     }
 
+def get_projects_list():
+    """Returns a list of projects from Vikunja."""
+    if not VIKUNJA_API_TOKEN:
+        return []
+    try:
+        response = requests.get(f"{VIKUNJA_API_URL}/projects", headers=get_vikunja_headers())
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error fetching projects: {e}")
+        return []
+
+def get_tasks_list(project_id=1):
+    """Returns a list of tasks for a project."""
+    if not VIKUNJA_API_TOKEN:
+        return []
+    try:
+        response = requests.get(f"{VIKUNJA_API_URL}/projects/{project_id}/tasks", headers=get_vikunja_headers())
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error fetching tasks: {e}")
+        return []
+
 def get_tasks():
     """
     Obtiene y formatea la lista de tareas de Vikunja.

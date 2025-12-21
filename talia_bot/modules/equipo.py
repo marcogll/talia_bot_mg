@@ -9,6 +9,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 DESCRIPTION, DURATION = range(2)
 
 async def propose_activity_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    print("--- PROPOSE ACTIVITY START CALLED ---")
     """
     Inicia el proceso para que un miembro del equipo proponga una actividad.
     Se activa cuando se pulsa el botón correspondiente.

@@ -14,7 +14,10 @@ class FlowEngine:
 
     def _load_flows(self):
         """Loads all individual flow JSON files from the flows directory."""
-        flows_dir = 'talia_bot/data/flows'
+        # flows_dir = 'talia_bot/data/flows' # OLD
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        flows_dir = os.path.join(base_dir, '..', 'data', 'flows')
+        
         loaded_flows = []
         try:
             if not os.path.exists(flows_dir):

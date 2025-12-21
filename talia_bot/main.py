@@ -3,7 +3,7 @@
 
 import logging
 import asyncio
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -12,6 +12,7 @@ from telegram.ext import (
     MessageHandler,
     ContextTypes,
     filters,
+    TypeHandler,
 )
 
 # Importamos las configuraciones y herramientas que creamos en otros archivos
@@ -35,7 +36,7 @@ from talia_bot.modules.servicios import get_service_info
 from talia_bot.modules.admin import get_system_status
 import os
 from talia_bot.modules.debug import print_handler
-from talia_bot.modules.vikunja import vikunja_conv_handler
+from talia_bot.modules.vikunja import vikunja_conv_handler, get_projects_list, get_tasks_list
 from talia_bot.modules.printer import send_file_to_printer, check_print_status
 from talia_bot.db import setup_database
 from talia_bot.modules.flow_engine import FlowEngine
@@ -47,6 +48,52 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+
+async def catch_all_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    print("--- CATCH ALL HANDLER ---")
+    print(update)
+
+
+async def send_step_message(update: Update, step: dict):
+    """Helper to send a message for a flow step, including options if available."""
+    text = step["question"]
+    reply_markup = None
+    
+    options = []
+    if "options" in step and step["options"]:
+        options = step["options"]
+    elif "input_type" in step:
+        if step["input_type"] == "dynamic_keyboard_vikunja_projects":
+            projects = get_projects_list()
+            # Assuming project has 'title' or 'id'
+            options = [p.get('title', 'Unknown') for p in projects]
+        elif step["input_type"] == "dynamic_keyboard_vikunja_tasks":
+            # NOTE: We ideally need the project_id selected in previous step.
+            # For now, defaulting to project 1 or generic fetch
+            tasks = get_tasks_list(1) 
+            options = [t.get('title', 'Unknown') for t in tasks]
+
+    if options:
+        keyboard = []
+        # Create a row for each option or group them
+        row = []
+        for option in options:
+            # Check if option is simple string or object (not implemented in JSONs seen so far)
+            # Ensure callback_data is not too long
+            cb_data = str(option)[:64]
+            row.append(InlineKeyboardButton(str(option), callback_data=cb_data))
+            if len(row) >= 2:
+                keyboard.append(row)
+                row = []
+        if row:
+            keyboard.append(row)
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if update.callback_query:
+        await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
+    else:
+        await update.message.reply_text(text=text, reply_markup=reply_markup)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -73,7 +120,7 @@ async def text_and_voice_handler(update: Update, context: ContextTypes.DEFAULT_T
     state = flow_engine.get_conversation_state(user_id)
     if not state:
         # If there's no active conversation, treat it as a start command
-        await start(update, context)
+        # await start(update, context) # Changed behavior: Don't auto-start, might be annoying
         return
 
     user_response = update.message.text
@@ -85,7 +132,7 @@ async def text_and_voice_handler(update: Update, context: ContextTypes.DEFAULT_T
     result = flow_engine.handle_response(user_id, user_response)
 
     if result["status"] == "in_progress":
-        await update.message.reply_text(result["step"]["question"])
+        await send_step_message(update, result["step"])
     elif result["status"] == "complete":
         if "sales_pitch" in result:
             await update.message.reply_text(result["sales_pitch"])
@@ -124,7 +171,17 @@ async def check_print_status_command(update: Update, context: ContextTypes.DEFAU
     await update.message.reply_text(response)
 
 
+async def reset_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Resets the conversation state for the user."""
+    user_id = update.effective_user.id
+    flow_engine = context.bot_data["flow_engine"]
+    flow_engine.end_flow(user_id)
+    await update.message.reply_text("🔄 Conversación reiniciada. Puedes empezar de nuevo.")
+    logger.info(f"User {user_id} reset their conversation.")
+
+
 async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    print("--- BUTTON DISPATCHER CALLED ---")
     """
     Esta función maneja los clics en los botones del menú.
     Dependiendo de qué botón se presione, ejecuta una acción diferente.
@@ -169,23 +226,50 @@ async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             logger.info(f"Ejecutando acción de aprobación: {query.data}")
             response_text = handle_approval_action(query.data)
         else:
+            # Check if the button is a flow trigger
+            flow_engine = context.bot_data["flow_engine"]
+            flow_to_start = next((flow for flow in flow_engine.flows if flow.get("trigger_button") == query.data), None)
+
+            if flow_to_start:
+                logger.info(f"Iniciando flujo: {flow_to_start['id']}")
+                initial_step = flow_engine.start_flow(update.effective_user.id, flow_to_start["id"])
+                if initial_step:
+                    await send_step_message(update, initial_step)
+                else:
+                    logger.error("No se pudo iniciar el flujo (paso inicial vacío).")
+                return
+            
+            # Check if the user is in a flow and clicked an option
+            state = flow_engine.get_conversation_state(update.effective_user.id)
+            if state:
+                logger.info(f"Procesando paso de flujo para usuario {update.effective_user.id}. Data: {query.data}")
+                result = flow_engine.handle_response(update.effective_user.id, query.data)
+                
+                if result["status"] == "in_progress":
+                    logger.info("Flujo en progreso, enviando siguiente paso.")
+                    await send_step_message(update, result["step"])
+                elif result["status"] == "complete":
+                     logger.info("Flujo completado.")
+                     if "sales_pitch" in result:
+                         await query.edit_message_text(result["sales_pitch"])
+                     elif "nfc_tag" in result:
+                         await query.edit_message_text(result["nfc_tag"], parse_mode='Markdown')
+                     else:
+                         await query.edit_message_text("Gracias por completar el flujo.")
+                elif result["status"] == "error":
+                     logger.error(f"Error en el flujo: {result['message']}")
+                     await query.edit_message_text(f"Error: {result['message']}")
+                return
+
             logger.warning(f"Consulta no manejada por el despachador: {query.data}")
+            # Only update text if no flow was started
             await query.edit_message_text(text=response_text)
             return
+
     except Exception as exc:
         logger.exception(f"Error al procesar la acción {query.data}: {exc}")
         response_text = "❌ Ocurrió un error al procesar tu solicitud. Intenta de nuevo."
         reply_markup = None
-
-    # Check if the button is a flow trigger
-    flow_engine = context.bot_data["flow_engine"]
-    flow_to_start = next((flow for flow in flow_engine.flows if flow.get("trigger_button") == query.data), None)
-
-    if flow_to_start:
-        initial_step = flow_engine.start_flow(update.effective_user.id, flow_to_start["id"])
-        if initial_step:
-            await query.edit_message_text(text=initial_step["question"])
-        return
 
     await query.edit_message_text(text=response_text, reply_markup=reply_markup, parse_mode='Markdown')
 
@@ -205,9 +289,7 @@ def main() -> None:
 
     schedule_daily_summary(application)
 
-    # El orden de los handlers es crucial para que las conversaciones funcionen.
-    application.add_handler(vikunja_conv_handler())
-
+    # Conversation handler for proposing activities
     conv_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(propose_activity_start, pattern='^propose_activity$')],
         states={
@@ -218,8 +300,12 @@ def main() -> None:
         per_message=False
     )
     application.add_handler(conv_handler)
+    
+    # El orden de los handlers es crucial para que las conversaciones funcionen.
+    # application.add_handler(vikunja_conv_handler())
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("reset", reset_conversation)) # Added reset command
     application.add_handler(CommandHandler("print", print_handler))
     application.add_handler(CommandHandler("check_print_status", check_print_status_command))
 
@@ -228,6 +314,8 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND | filters.VOICE, text_and_voice_handler))
 
     application.add_handler(CallbackQueryHandler(button_dispatcher))
+
+    application.add_handler(TypeHandler(object, catch_all_handler))
 
     logger.info("Iniciando Talía Bot...")
     application.run_polling()

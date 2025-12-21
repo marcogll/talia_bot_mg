@@ -3,8 +3,9 @@
 
 import sqlite3
 import logging
+import os
 
-DATABASE_FILE = "talia_bot/data/users.db"
+DATABASE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "users.db")
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,7 @@ def get_db_connection():
 
 def setup_database():
     """Sets up the database tables if they don't exist."""
+    conn = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -29,6 +31,16 @@ def setup_database():
                 name TEXT,
                 employee_id TEXT,
                 branch TEXT
+            )
+        """)
+
+        # Create the conversations table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conversations (
+                user_id INTEGER PRIMARY KEY,
+                flow_id TEXT NOT NULL,
+                current_step_id INTEGER NOT NULL,
+                collected_data TEXT
             )
         """)
 
