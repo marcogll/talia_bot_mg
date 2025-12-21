@@ -16,6 +16,9 @@ from talia_bot.config import (
     SMTP_USER,
     SMTP_PASS,
     IMAP_SERVER,
+    IMAP_USER,
+    IMAP_PASS,
+    PRINTER_EMAIL,
 )
 from talia_bot.modules.identity import is_admin
 
@@ -28,14 +31,14 @@ async def send_file_to_printer(file_path: str, user_id: int, file_name: str):
     if not is_admin(user_id):
         return "No tienes permiso para usar este comando."
 
-    if not all([SMTP_SERVER, SMTP_PORT, SMTP_USER, SMTP_PASS]):
-        logger.error("Faltan una o más variables de entorno SMTP.")
+    if not all([SMTP_SERVER, SMTP_PORT, SMTP_USER, SMTP_PASS, PRINTER_EMAIL]):
+        logger.error("Faltan una o más variables de entorno SMTP o PRINTER_EMAIL.")
         return "El servicio de impresión no está configurado correctamente."
 
     try:
         msg = MIMEMultipart()
         msg["From"] = SMTP_USER
-        msg["To"] = SMTP_USER  # Sending to the printer's email address
+        msg["To"] = PRINTER_EMAIL
         msg["Subject"] = f"Print Job from {user_id}: {file_name}"
 
         body = f"Nuevo trabajo de impresión enviado por el usuario {user_id}.\nNombre del archivo: {file_name}"
@@ -55,10 +58,10 @@ async def send_file_to_printer(file_path: str, user_id: int, file_name: str):
         server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
         server.login(SMTP_USER, SMTP_PASS)
         text = msg.as_string()
-        server.sendmail(SMTP_USER, SMTP_USER, text)
+        server.sendmail(SMTP_USER, PRINTER_EMAIL, text)
         server.quit()
 
-        logger.info(f"Archivo {file_name} enviado a la impresora por el usuario {user_id}.")
+        logger.info(f"Archivo {file_name} enviado a la impresora ({PRINTER_EMAIL}) por el usuario {user_id}.")
         return f"Tu archivo '{file_name}' ha sido enviado a la impresora. Recibirás una notificación cuando el estado del trabajo cambie."
 
     except Exception as e:
@@ -73,13 +76,13 @@ async def check_print_status(user_id: int):
     if not is_admin(user_id):
         return "No tienes permiso para usar este comando."
 
-    if not all([IMAP_SERVER, SMTP_USER, SMTP_PASS]):
+    if not all([IMAP_SERVER, IMAP_USER, IMAP_PASS]):
         logger.error("Faltan una o más variables de entorno IMAP.")
         return "El servicio de monitoreo de impresión no está configurado correctamente."
 
     try:
         mail = imaplib.IMAP4_SSL(IMAP_SERVER)
-        mail.login(SMTP_USER, SMTP_PASS)
+        mail.login(IMAP_USER, IMAP_PASS)
         mail.select("inbox")
 
         status, messages = mail.search(None, "UNSEEN")
