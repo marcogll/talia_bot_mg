@@ -32,3 +32,25 @@ def get_smart_response(prompt):
     except Exception as e:
         # Si algo sale mal, devolvemos el error
         return f"Ocurrió un error al comunicarse con OpenAI: {e}"
+
+def transcribe_audio(audio_file_path):
+    """
+    Transcribes an audio file using OpenAI's Whisper model.
+
+    Parameters:
+    - audio_file_path: The path to the audio file.
+    """
+    if not OPENAI_API_KEY:
+        return "Error: OPENAI_API_KEY is not configured."
+
+    try:
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+        with open(audio_file_path, "rb") as audio_file:
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file
+            )
+        return transcript.text
+    except Exception as e:
+        return f"Error during audio transcription: {e}"

@@ -4,14 +4,22 @@
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
-def get_admin_menu():
+def get_admin_menu(flow_engine):
     """Crea el menú de botones principal para los Administradores."""
     keyboard = [
         [InlineKeyboardButton("👑 Revisar Pendientes", callback_data='view_pending')],
         [InlineKeyboardButton("📅 Agenda", callback_data='view_agenda')],
-        [InlineKeyboardButton(" NFC", callback_data='start_create_tag')],
-        [InlineKeyboardButton("▶️ Más opciones", callback_data='admin_menu')],
     ]
+
+    # Dynamic buttons from flows
+    if flow_engine:
+        for flow in flow_engine.flows:
+            if flow.get("role") == "admin" and "trigger_button" in flow and "name" in flow:
+                button = InlineKeyboardButton(flow["name"], callback_data=flow["trigger_button"])
+                keyboard.append([button])
+
+    keyboard.append([InlineKeyboardButton("▶️ Más opciones", callback_data='admin_menu')])
+
     return InlineKeyboardMarkup(keyboard)
 
 def get_admin_secondary_menu():
@@ -41,14 +49,14 @@ def get_client_menu():
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def handle_start(user_role):
+def handle_start(user_role, flow_engine=None):
     """
     Decide qué mensaje y qué menú mostrar según el rol del usuario.
     """
     welcome_message = "Hola, soy Talía. ¿En qué puedo ayudarte hoy?"
 
     if user_role == "admin":
-        menu = get_admin_menu()
+        menu = get_admin_menu(flow_engine)
     elif user_role == "crew":
         menu = get_crew_menu()
     else:

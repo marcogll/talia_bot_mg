@@ -41,19 +41,19 @@ def generate_sales_pitch(user_query, collected_data):
     relevant_services = find_relevant_services(user_query, services)
 
     if not relevant_services:
-        # Fallback to all services if no specific keywords match
-        context_str = "Aquí hay una descripción general de nuestros servicios:\n"
-        for service in services:
-            context_str += f"- **{service['service_name']}**: {service['description']}\n"
-    else:
-        context_str = "Según tus necesidades, aquí tienes algunos de nuestros servicios y ejemplos de lo que podemos hacer:\n"
-        for service in relevant_services:
-            context_str += f"\n**Servicio:** {service['service_name']}\n"
-            context_str += f"*Descripción:* {service['description']}\n"
-            if "work_examples" in service:
-                context_str += "*Ejemplos de trabajo:*\n"
-                for example in service["work_examples"]:
-                    context_str += f"  - {example}\n"
+        logger.warning(f"No se encontraron servicios relevantes para la consulta: '{user_query}'. No se generará respuesta.")
+        return ("Gracias por tu interés. Sin embargo, con la información proporcionada no he podido identificar "
+                "servicios específicos que se ajusten a tu necesidad. ¿Podrías describir tu proyecto con otras palabras "
+                "o dar más detalles sobre lo que buscas?")
+
+    context_str = "Según tus necesidades, aquí tienes algunos de nuestros servicios y ejemplos de lo que podemos hacer:\n"
+    for service in relevant_services:
+        context_str += f"\n**Servicio:** {service['service_name']}\n"
+        context_str += f"*Descripción:* {service['description']}\n"
+        if "work_examples" in service:
+            context_str += "*Ejemplos de trabajo:*\n"
+            for example in service["work_examples"]:
+                context_str += f"  - {example}\n"
 
     prompt = (
         f"Eres Talía, una asistente de ventas experta y amigable. Un cliente potencial llamado "
