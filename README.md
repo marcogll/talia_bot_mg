@@ -4,61 +4,58 @@ Talia es un **Middleware de Inteligencia Artificial** diseñado para orquestar o
 
 ---
 
-## 🚀 Concepto Central: Arquitectura Modular y Roles de Usuario
+## 🚀 Concepto Central: Arquitectura de Agente Autónomo
 
-La funcionalidad del bot se basa en dos pilares:
+El bot opera como un agente que sigue un ciclo de **Recepción -> Identificación -> Enrutamiento -> Ejecución**.
 
-1.  **Enrutamiento por Identidad**: El bot identifica a cada usuario por su Telegram ID y le asigna un rol (`admin`, `crew`, `client`). Cada rol tiene acceso a un conjunto diferente de funcionalidades y menús, definidos en una base de datos SQLite.
-2.  **Motor de Flujos de Conversación**: En lugar de código rígido, las conversaciones se definen como "flujos" en archivos **JSON** (`talia_bot/data/flows/`). Un motor central (`flow_engine.py`) interpreta estos archivos para guiar al usuario a través de una serie de preguntas y respuestas, haciendo que el sistema sea altamente escalable y fácil de mantener.
+1.  **Recepción de Mensajes**: `main.py` actúa como el punto de entrada que recibe todos los inputs (texto, botones, comandos, documentos) desde Telegram.
+2.  **Identificación de Usuario**: Al recibir un mensaje, el módulo `identity.py` consulta la base de datos (`users.db`) para obtener el rol del usuario (`admin`, `crew`, `client`).
+3.  **Enrutamiento de Acciones**:
+    *   **Si el usuario está en una conversación activa**, el `flow_engine.py` toma el control y procesa la respuesta según la definición del flujo JSON correspondiente.
+    *   **Si el usuario no está en una conversación**, el sistema le muestra un menú de botones. Estos menús se generan dinámicamente a partir de los archivos de flujo en `talia_bot/data/flows/` que tienen una clave `"trigger_button"`.
+4.  **Ejecución de Módulos**: Dependiendo de la acción, se invocan módulos específicos para interactuar con APIs externas:
+    *   `sales_rag.py` para generar respuestas de ventas con IA.
+    *   `printer.py` para enviar correos de impresión.
+    *   `vikunja.py` para gestionar tareas.
+    *   `calendar.py` para consultar la agenda.
 
 | Rol     | Icono | Descripción         | Permisos Clave                                                              |
 | :------ | :---: | :------------------ | :-------------------------------------------------------------------------- |
-| **Admin** |  👑   | Dueño / Gerente     | Control total: gestión de proyectos, agenda, y configuración del sistema.   |
-| **Crew**  |  👷   | Equipo Operativo    | Funciones limitadas: solicitud de agenda, impresión de documentos.          |
-| **Cliente** |  👤   | Usuario Externo     | Embudo de ventas: captación de datos y presentación de servicios.           |
+| **Admin** |  👑   | Dueño / Gerente     | Control total: gestión de proyectos, agenda, impresión y configuración del sistema. |
+| **Crew**  |  👷   | Equipo Operativo    | Funciones limitadas: solicitud de agenda y consulta de tareas.              |
+| **Cliente** |  👤   | Usuario Externo     | Embudo de ventas: captación de datos y generación de propuestas con IA.     |
 
 ---
 
-## 📋 Flujos de Trabajo Modulares (Features)
+## 📋 Flujos de Trabajo y Funcionalidades Clave
 
-El comportamiento del bot se define a través de **flujos de conversación modulares** gestionados por un motor central (`flow_engine.py`). Cada flujo es un archivo `.json` independiente ubicado en `talia_bot/data/flows/`, lo que permite modificar o crear nuevas conversaciones sin alterar el código principal.
+El comportamiento del bot se define a través de **flujos de conversación modulares** gestionados por un motor central (`flow_engine.py`). Cada flujo es un archivo `.json` que define una conversación paso a paso, permitiendo una fácil personalización.
 
-### 1. 👑 Gestión Admin (Proyectos & Identidad)
+### 1. 🤖 Flujo de Ventas RAG (Retrieval-Augmented Generation)
 
-*   **Proyectos (Vikunja)**:
-    *   Resumen inteligente de estatus de proyectos.
-    *   Comandos naturales: *"Marca el proyecto de web como terminado y comenta que se envió factura"*.
-*   **Wizard de Identidad (NFC)**:
-    *   Flujo paso a paso para dar de alta colaboradores.
-    *   Genera JSON de registro y String Base64 listo para escribir en Tags NFC.
-    *   Inputs: Nombre, ID Empleado, Sucursal (Botones), Telegram ID.
+Este es el embudo de ventas principal para nuevos clientes. El bot inicia una conversación para entender las necesidades del prospecto y luego utiliza un modelo de IA para generar una propuesta personalizada.
 
-### 2. 👷 Gestión Crew (Agenda & Tareas)
+*   **Recopilación de Datos**: El flujo (`client_sales_funnel.json`) guía al usuario a través de una serie de preguntas para recopilar su nombre, industria y la descripción de su proyecto.
+*   **Recuperación de Conocimiento (Retrieval)**: El sistema consulta una base de datos de servicios (`servicios.json`) para encontrar las soluciones más relevantes basadas en las palabras clave del cliente.
+*   **Generación Aumentada (Augmented Generation)**: Con la información del cliente y los servicios relevantes, el bot construye un *prompt* detallado y lo envía al `llm_engine` (conectado a OpenAI). El modelo de lenguaje genera una respuesta que conecta las necesidades del cliente con los servicios y ejemplos de trabajo concretos.
+*   **Llamada a la Acción**: La respuesta siempre termina sugiriendo el siguiente paso, como agendar una llamada.
 
-*   **Solicitud de Tiempo (Wizard)**:
-    *   Solicita espacios de 1 a 4 horas.
-    *   **Reglas de Negocio**:
-        *   No permite fechas > 3 meses a futuro.
-        *   **Gatekeeper**: Verifica Google Calendar. Si hay evento "Privado" del Admin, rechaza automáticamente.
-*   **Modo Buzón (Vikunja)**:
-    *   Crea tareas asignadas al Admin.
-    *   **Privacidad**: Solo pueden consultar el estatus de tareas creadas por ellos mismos.
+### 2. 🖨️ Servicio de Impresión Remota
 
-### 3. 🖨️ Sistema de Impresión Remota (Print Loop)
+Permite a los usuarios autorizados (`admin`) enviar documentos a una impresora física directamente desde Telegram.
 
-*   Permite enviar archivos desde Telegram a la impresora física de la oficina.
-*   **Envío (SMTP)**: El bot envía el documento a un correo designado.
-*   **Tracking**: El asunto del correo lleva un hash único: `PJ:{uuid}#TID:{telegram_id}`.
-*   **Confirmación (IMAP Listener)**: Un proceso en background escucha la respuesta de la impresora y notifica al usuario en Telegram.
+*   **Envío (SMTP)**: Al recibir un archivo, el bot lo adjunta a un correo electrónico y lo envía a la dirección de la impresora preconfigurada usando credenciales SMTP.
+*   **Monitoreo de Estado (IMAP)**: Un comando `/check_print_status` permite al administrador consultar la bandeja de entrada de la impresora. El bot se conecta vía IMAP, busca correos no leídos y reporta el estado de los trabajos de impresión basándose en palabras clave en el asunto (ej. "completed", "failed").
 
-El sistema opera con el siguiente flujo:
+### 3. 📅 Gestión de Agenda y Tareas
 
-1.  **Recepción de Mensajes**: `main.py` recibe todos los inputs (texto, botones, comandos) desde Telegram.
-2.  **Identificación de Usuario**: Se consulta la base de datos (`users.db`) para obtener el rol del usuario.
-3.  **Dispatching de Acciones**:
-    *   Si el usuario no está en una conversación, se le muestra un menú de botones basado en los flujos JSON disponibles para su rol.
-    *   Si el usuario ya está en una conversación, el `flow_engine.py` gestiona la respuesta.
-4.  **Ejecución de Módulos**: El motor de flujos invoca módulos específicos (`vikunja.py`, `calendar.py`, etc.) para interactuar con APIs externas según sea necesario.
+*   **Consulta de Agenda**: Se integra con **Google Calendar** para mostrar los eventos del día.
+*   **Gestión de Tareas**: Se conecta a **Vikunja** para permitir la creación y seguimiento de tareas desde Telegram.
+
+### 4. 🛂 Sistema de Roles y Permisos
+
+*   El acceso a las funcionalidades está restringido por roles (`admin`, `crew`, `client`), los cuales se gestionan en una base de datos **SQLite**.
+*   Los menús y opciones se muestran dinámicamente según el rol del usuario, asegurando que cada quien solo vea las herramientas que le corresponden.
 
 ---
 
@@ -159,12 +156,20 @@ talia_bot/
 
 ---
 
-## 🗓️ Roadmap
+## 🗓️ Roadmap y Funcionalidades Completadas
 
-- [ ] Implementar Wizard de creación de Tags NFC (Base64).
-- [ ] Conectar Loop de Impresión (SMTP/IMAP).
-- [ ] Migrar de OpenAI a Google Gemini 1.5 Pro.
-- [ ] Implementar soporte para fotos en impresión.
+### Funcionalidades Implementadas
+- **✅ Motor de Flujos Conversacionales (JSON)**: Arquitectura central para conversaciones dinámicas.
+- **✅ Gestión de Roles y Permisos**: Sistema de `admin`, `crew`, y `client`.
+- **✅ Integración con Vikunja**: Creación y consulta de tareas.
+- **✅ Integración con Google Calendar**: Consulta de agenda.
+- **✅ Servicio de Impresión Remota (SMTP/IMAP)**: Envío de documentos y monitoreo de estado.
+- **✅ Flujo de Ventas RAG**: Captura de leads y generación de propuestas personalizadas con IA.
+
+### Próximos Pasos
+- [ ] **Wizard de Creación de Tags NFC (Base64)**: Implementar el flujo completo para registrar nuevos colaboradores.
+- [ ] **Soporte para Fotos en Impresión**: Añadir la capacidad de enviar imágenes al servicio de impresión.
+- [ ] **Migración a Google Gemini 1.5 Pro**: Evaluar y migrar el motor de IA para optimizar costos y capacidades.
 
 ---
 
