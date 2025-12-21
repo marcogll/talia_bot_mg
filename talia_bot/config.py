@@ -46,3 +46,10 @@ CALENDLY_LINK = os.getenv("CALENDLY_LINK", "https://calendly.com/user/appointmen
 
 # Zona horaria por defecto para el manejo de fechas y horas
 TIMEZONE = os.getenv("TIMEZONE", "America/Mexico_City")
+
+# --- PRINT SERVICE ---
+SMTP_SERVER = os.getenv("SMTP_SERVER")
+SMTP_PORT = os.getenv("SMTP_PORT")
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASS = os.getenv("SMTP_PASS")
+IMAP_SERVER = os.getenv("IMAP_SERVER")

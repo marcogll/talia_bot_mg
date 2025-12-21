@@ -1,22 +1,145 @@
 [
   {
-    "service_name": "Web Development for Restaurants",
-    "description": "Custom websites and online ordering systems for restaurants, helping you reach more customers and streamline your operations.",
-    "keywords": ["restaurant", "food", "online ordering", "website", "restaurantes", "comida"]
+    "service_name": "Diseño gráfico",
+    "description": "Soluciones completas de identidad visual y material gráfico para fortalecer la imagen de marca en medios digitales e impresos.",
+    "keywords": [
+      "branding",
+      "logotipos",
+      "identidad visual",
+      "diseño publicitario",
+      "manual de marca",
+      "formatos impresos"
+    ],
+    "work_examples": [
+      "Creación de Identidad Visual (Logotipo, paleta de colores, tipografías)",
+      "Diseño de Manual de Marca y aplicaciones",
+      "Diseño de Flyers y Trípticos promocionales",
+      "Diseño de Tarjetas de Presentación (Digitales e Impresas)",
+      "Diseño de Banners para campañas publicitarias y redes sociales",
+      "Adaptación de artes para diferentes formatos (Instagram, LinkedIn, Web)"
+    ]
   },
   {
-    "service_name": "Patient Management Systems for Healthcare",
-    "description": "A secure and efficient software solution for managing patient records, appointments, and billing in medical clinics.",
-    "keywords": ["healthcare", "medical", "patient", "clinic", "salud", "médico", "pacientes"]
+    "service_name": "Producción de contenido audiovisual",
+    "description": "Creación, edición y postproducción de contenido de video profesional enfocado en retener la atención y comunicar mensajes clave.",
+    "keywords": [
+      "video marketing",
+      "reels",
+      "tiktok",
+      "edición de video",
+      "podcast",
+      "youtube",
+      "guiones",
+      "postproducción"
+    ],
+    "work_examples": [
+      "Edición dinámica de videos verticales (Reels/TikTok)",
+      "Producción y edición de episodios de Podcast",
+      "Creación de videos corporativos para YouTube",
+      "Animación de logotipos (Intros/Outros)",
+      "Subtitulado y efectos visuales para clips de redes sociales",
+      "Grabación y edición multicámara"
+    ]
   },
   {
-    "service_name": "Content Creation & Social Media Strategy",
-    "description": "Engaging content packages and social media management to build your brand's online presence and connect with your audience.",
-    "keywords": ["content creation", "social media", "marketing", "branding", "contenido", "redes sociales"]
+    "service_name": "Estrategias de marketing",
+    "description": "Planificación y ejecución de estrategias de contenido para redes sociales, enfocadas en crecimiento, interacción y posicionamiento.",
+    "keywords": [
+      "social media",
+      "estrategia de contenidos",
+      "engagement",
+      "copywriting",
+      "calendario editorial",
+      "crecimiento orgánico"
+    ],
+    "work_examples": [
+      "Diseño de parrilla de contenidos mensual",
+      "Creación de creativos gráficos para posts y carruseles",
+      "Redacción de copies persuasivos y llamadas a la acción (CTA)",
+      "Planificación de campañas de lanzamiento",
+      "Análisis de tendencias y competencia en redes sociales"
+    ]
   },
   {
-    "service_name": "General Business Consulting",
-    "description": "Strategic consulting to help you optimize business processes, identify growth opportunities, and improve overall performance.",
-    "keywords": ["business", "consulting", "strategy", "growth", "negocio", "consultoría"]
+    "service_name": "Desarrollo de páginas web",
+    "description": "Diseño y desarrollo de sitios web funcionales y optimizados, desde páginas de aterrizaje hasta tiendas en línea completas.",
+    "keywords": [
+      "desarrollo web",
+      "e-commerce",
+      "landing page",
+      "seo",
+      "ux/ui",
+      "tienda online",
+      "pasarelas de pago"
+    ],
+    "work_examples": [
+      "Desarrollo de E-commerce con catálogo y pasarela de pagos",
+      "Diseño de Landing Pages optimizadas para conversión (Captación de Leads)",
+      "Creación de Sitios Web Corporativos institucionales",
+      "Integración de herramientas de análisis (Google Analytics, Pixel)",
+      "Optimización SEO básica y velocidad de carga",
+      "Mantenimiento y actualización de sitios web"
+    ]
+  },
+  {
+    "service_name": "Bots para venta y agenda",
+    "description": "Implementación de asistentes virtuales inteligentes para gestionar clientes, automatizar ventas y agendar citas automáticamente.",
+    "keywords": [
+      "chatbots",
+      "whatsapp business",
+      "automatización de ventas",
+      "atención al cliente",
+      "flujos conversacionales",
+      "crm"
+    ],
+    "work_examples": [
+      "Configuración de Bot de WhatsApp para atención 24/7",
+      "Automatización de agendamiento de citas y recordatorios",
+      "Diseño de flujos de conversación para calificación de leads",
+      "Respuestas automáticas a preguntas frecuentes (FAQs)",
+      "Integración de chatbot con base de datos de clientes",
+      "Segmentación automática de usuarios según sus respuestas"
+    ]
+  },
+  {
+    "service_name": "Consultoria de mejora de procesos",
+    "description": "Servicios de consultoría estratégica para optimizar flujos de trabajo y tomar decisiones basadas en datos y análisis.",
+    "keywords": [
+      "consultoría de negocios",
+      "optimización de procesos",
+      "análisis de datos",
+      "encuestas",
+      "kpis",
+      "mejora continua"
+    ],
+    "work_examples": [
+      "Implementación de encuestas de satisfacción de clientes",
+      "Análisis y reporte de métricas de negocio",
+      "Auditoría de procesos operativos actuales",
+      "Diseño de formularios interactivos para recolección de datos",
+      "Identificación de cuellos de botella y oportunidades de mejora"
+    ]
+  },
+  {
+    "service_name": "Automatización de procesos e integración de IA a tu negocio",
+    "description": "Soluciones avanzadas de automatización de flujos de trabajo e integración de Inteligencia Artificial para reducir tareas repetitivas y escalar operaciones.",
+    "keywords": [
+      "inteligencia artificial",
+      "automatización",
+      "zapier",
+      "make",
+      "chatgpt",
+      "api",
+      "productividad",
+      "workflows"
+    ],
+    "work_examples": [
+      "Conexión de aplicaciones mediante Zapier o Make (ej. Gmail a Slack)",
+      "Implementación de agentes de IA personalizados (GPTs) para tareas específicas",
+      "Automatización de generación de facturas y reportes",
+      "Clasificación y respuesta automática de correos electrónicos con IA",
+      "Extracción y procesamiento automático de datos de documentos",
+      "Integración de APIs de IA en sistemas internos de la empresa"
+    ]
   }
 ]

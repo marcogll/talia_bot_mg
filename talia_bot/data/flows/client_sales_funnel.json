@@ -1,24 +1,33 @@
 {
   "id": "client_sales_funnel",
   "role": "client",
+  "trigger_button": "get_service_info",
   "trigger_automatic": true,
   "steps": [
     {
       "step_id": 0,
       "variable": "CLIENT_NAME",
-      "question": "Hola. Soy Talia, la mano derecha de Armando. ✨Él está ocupado creando, pero yo soy la puerta de entrada. ¿Con quién tengo el gusto?",
+      "question": "Hola, soy Talía. ✨ Estoy aquí para ayudarte a explorar cómo podemos potenciar tu negocio. Para empezar, ¿cuál es tu nombre?",
       "input_type": "text"
     },
     {
       "step_id": 1,
       "variable": "CLIENT_INDUSTRY",
-      "question": "Mucho gusto, {user_name}. Para entender mejor tus necesidades, ¿cuál es el giro de tu negocio o tu industria?",
-      "options": ["🍽️ Restaurantes", "🩺 Salud", "🛍️ Retail", "อื่น ๆ"]
+      "question": "Mucho gusto. Para poder ofrecerte la solución más adecuada, por favor, selecciona el área que mejor describa tu negocio:",
+      "options": [
+        "🎨 Diseño Gráfico",
+        "🎬 Contenido Audiovisual",
+        "📈 Estrategias de Marketing",
+        "🌐 Desarrollo Web",
+        "🤖 Bots y Automatización",
+        "⚙️ Mejora de Procesos",
+        "💡 Otro"
+      ]
     },
     {
       "step_id": 2,
       "variable": "IDEA_PITCH",
-      "question": "Excelente. Ahora, el escenario es tuyo. 🎤 Cuéntame sobre tu proyecto o la idea que tienes en mente. No te guardes nada. Puedes escribirlo o, si prefieres, enviarme una nota de voz.",
+      "question": "Excelente. Ahora, cuéntame sobre tu proyecto o la idea que tienes en mente. ¿Qué desafío buscas resolver o qué oportunidad quieres aprovechar? Puedes escribirlo o enviarme una nota de voz.",
       "input_type": "text_or_audio"
     }
   ]

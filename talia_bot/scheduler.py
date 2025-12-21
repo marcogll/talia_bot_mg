@@ -1,13 +1,16 @@
 # app/scheduler.py
 # Este script se encarga de programar tareas automáticas, como el resumen diario.
 
+# app/scheduler.py
+# Este script se encarga de programar tareas automáticas, como el resumen diario.
+
 import logging
 from datetime import time
 from telegram.ext import ContextTypes
 import pytz
 
-from config import OWNER_CHAT_ID, TIMEZONE, DAILY_SUMMARY_TIME
-from modules.agenda import get_agenda
+from talia_bot.config import ADMIN_ID, TIMEZONE, DAILY_SUMMARY_TIME
+from talia_bot.modules.agenda import get_agenda
 
 # Configuramos el registro de eventos (logging) para ver qué pasa en la consola
 logger = logging.getLogger(__name__)
@@ -44,8 +47,8 @@ def schedule_daily_summary(application) -> None:
     Programa la tarea del resumen diario para que ocurra todos los días.
     """
     # Si no hay un ID de dueño configurado, no programamos nada
-    if not OWNER_CHAT_ID:
-        logger.warning("OWNER_CHAT_ID no configurado. No se programará el resumen diario.")
+    if not ADMIN_ID:
+        logger.warning("ADMIN_ID no configurado. No se programará el resumen diario.")
         return
 
     job_queue = application.job_queue
@@ -66,8 +69,8 @@ def schedule_daily_summary(application) -> None:
     job_queue.run_daily(
         send_daily_summary,
         time=scheduled_time,
-        chat_id=int(OWNER_CHAT_ID),
+        chat_id=int(ADMIN_ID),
         name="daily_summary"
     )
 
-    logger.info(f"Resumen diario programado para {OWNER_CHAT_ID} a las {scheduled_time} ({TIMEZONE})")
+    logger.info(f"Resumen diario programado para {ADMIN_ID} a las {scheduled_time} ({TIMEZONE})")

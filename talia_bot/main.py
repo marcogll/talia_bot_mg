@@ -33,10 +33,13 @@ from talia_bot.modules.equipo import (
 from talia_bot.modules.aprobaciones import view_pending, handle_approval_action
 from talia_bot.modules.servicios import get_service_info
 from talia_bot.modules.admin import get_system_status
+import os
 from talia_bot.modules.debug import print_handler
 from talia_bot.modules.create_tag import create_tag_conv_handler
 from talia_bot.modules.vikunja import vikunja_conv_handler
+from talia_bot.modules.printer import send_file_to_printer, check_print_status
 from talia_bot.db import setup_database
+from talia_bot.modules.flow_engine import FlowEngine
 
 from talia_bot.scheduler import schedule_daily_summary
 
@@ -61,6 +64,64 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     # Respondemos al usuario
     await update.message.reply_text(response_text, reply_markup=reply_markup)
+
+
+async def text_and_voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handles text and voice messages for the flow engine."""
+    user_id = update.effective_user.id
+    flow_engine = context.bot_data["flow_engine"]
+
+    state = flow_engine.get_conversation_state(user_id)
+    if not state:
+        # If there's no active conversation, treat it as a start command
+        await start(update, context)
+        return
+
+    user_response = update.message.text
+    if update.message.voice:
+        # Here you would add the logic to transcribe the voice message
+        # For now, we'll just use a placeholder
+        user_response = "Voice message received (transcription not implemented yet)."
+
+    result = flow_engine.handle_response(user_id, user_response)
+
+    if result["status"] == "in_progress":
+        await update.message.reply_text(result["step"]["question"])
+    elif result["status"] == "complete":
+        if "sales_pitch" in result:
+            await update.message.reply_text(result["sales_pitch"])
+        else:
+            await update.message.reply_text("Gracias por completar el flujo.")
+    elif result["status"] == "error":
+        await update.message.reply_text(result["message"])
+
+
+async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handles documents sent to the bot for printing."""
+    document = update.message.document
+    user_id = update.effective_user.id
+    file = await context.bot.get_file(document.file_id)
+
+    # Create a directory for temporary files if it doesn't exist
+    temp_dir = 'temp_files'
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, document.file_name)
+
+    await file.download_to_drive(file_path)
+
+    response = await send_file_to_printer(file_path, user_id, document.file_name)
+    await update.message.reply_text(response)
+
+    # Clean up the downloaded file
+    os.remove(file_path)
+
+
+async def check_print_status_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Command to check print status."""
+    user_id = update.effective_user.id
+    response = await check_print_status(user_id)
+    await update.message.reply_text(response)
+
 
 async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -117,6 +178,16 @@ async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         response_text = "❌ Ocurrió un error al procesar tu solicitud. Intenta de nuevo."
         reply_markup = None
 
+    # Check if the button is a flow trigger
+    flow_engine = context.bot_data["flow_engine"]
+    flow_to_start = next((flow for flow in flow_engine.flows if flow.get("trigger_button") == query.data), None)
+
+    if flow_to_start:
+        initial_step = flow_engine.start_flow(update.effective_user.id, flow_to_start["id"])
+        if initial_step:
+            await query.edit_message_text(text=initial_step["question"])
+        return
+
     await query.edit_message_text(text=response_text, reply_markup=reply_markup, parse_mode='Markdown')
 
 def main() -> None:
@@ -128,6 +199,11 @@ def main() -> None:
     setup_database()
 
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+
+    # Instantiate and store the flow engine in bot_data
+    flow_engine = FlowEngine()
+    application.bot_data["flow_engine"] = flow_engine
+
     schedule_daily_summary(application)
 
     # El orden de los handlers es crucial para que las conversaciones funcionen.
@@ -147,6 +223,11 @@ def main() -> None:
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("print", print_handler))
+    application.add_handler(CommandHandler("check_print_status", check_print_status_command))
+
+    application.add_handler(MessageHandler(filters.Document.ALL, handle_document))
+
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND | filters.VOICE, text_and_voice_handler))
 
     application.add_handler(CallbackQueryHandler(button_dispatcher))
 

@@ -3,7 +3,7 @@
 # En este caso, se comunica con n8n.
 
 import requests
-from config import N8N_WEBHOOK_URL, N8N_TEST_WEBHOOK_URL
+from talia_bot.config import N8N_WEBHOOK_URL, N8N_TEST_WEBHOOK_URL
 
 def send_webhook(event_data):
     """

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from talia_bot.db import get_db_connection
+from talia_bot.modules.sales_rag import generate_sales_pitch
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +118,17 @@ class FlowEngine:
             self.update_conversation_state(user_id, state['flow_id'], next_step_id, state['collected_data'])
             return {"status": "in_progress", "step": next_step}
         else:
+            final_data = state['collected_data']
             self.end_flow(user_id)
-            return {"status": "complete", "flow_id": flow['id'], "data": state['collected_data']}
+
+            response = {"status": "complete", "flow_id": flow['id'], "data": final_data}
+
+            if flow['id'] == 'client_sales_funnel':
+                user_query = final_data.get('IDEA_PITCH', '')
+                sales_pitch = generate_sales_pitch(user_query, final_data)
+                response['sales_pitch'] = sales_pitch
+
+            return response
 
     def end_flow(self, user_id):
         """Ends a flow for a user by deleting their conversation state."""

@@ -2,7 +2,7 @@
 # Este módulo maneja la programación de citas para los clientes.
 # Permite a los usuarios obtener un enlace para agendar una reunión.
 
-from config import CALENDLY_LINK
+from talia_bot.config import CALENDLY_LINK
 
 def request_appointment():
     """
