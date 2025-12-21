@@ -115,13 +115,21 @@ class FlowEngine:
             state['collected_data'][f"step_{current_step['step_id']}_response"] = response_data
 
 
-        next_step_id = state['current_step_id'] + 1
-        next_step = next((step for step in flow['steps'] if step['step_id'] == next_step_id), None)
+        # Find the index of the current step to determine the next one robustly
+        steps = flow['steps']
+        current_step_index = -1
+        for i, step in enumerate(steps):
+            if step['step_id'] == state['current_step_id']:
+                current_step_index = i
+                break
 
-        if next_step:
-            self.update_conversation_state(user_id, state['flow_id'], next_step_id, state['collected_data'])
+        # Check if there is a next step in the list
+        if current_step_index != -1 and current_step_index + 1 < len(steps):
+            next_step = steps[current_step_index + 1]
+            self.update_conversation_state(user_id, state['flow_id'], next_step['step_id'], state['collected_data'])
             return {"status": "in_progress", "step": next_step}
         else:
+            # This is the last step, so the flow is complete
             final_data = state['collected_data']
             self.end_flow(user_id)
 

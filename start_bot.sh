@@ -8,4 +8,4 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export PYTHONPATH="$PYTHONPATH:$DIR/.."
 
 # Run the bot
-python3 "$DIR/main.py"
+python3 "$DIR/talia_bot/main.py"
