@@ -1,7 +1,8 @@
 {
   "id": "admin_print_file",
   "role": "admin",
-  "trigger_button": "🖨️ Imprimir",
+  "name": "🖨️ Imprimir Archivo",
+  "trigger_button": "print_file",
   "steps": [
     {
       "step_id": 0,

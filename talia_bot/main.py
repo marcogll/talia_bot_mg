@@ -33,6 +33,7 @@ from talia_bot.modules.vikunja import vikunja_conv_handler, get_projects_list, g
 from talia_bot.modules.printer import send_file_to_printer, check_print_status
 from talia_bot.db import setup_database
 from talia_bot.modules.flow_engine import FlowEngine
+from talia_bot.modules.llm_engine import transcribe_audio
 
 from talia_bot.scheduler import schedule_daily_summary
 
@@ -101,7 +102,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Usuario {chat_id} inició conversación con el rol: {user_role}")
 
     # Obtenemos el texto y los botones de bienvenida desde el módulo de onboarding
-    response_text, reply_markup = onboarding_handle_start(user_role)
+    response_text, reply_markup = onboarding_handle_start(user_role, flow_engine)
 
     # Respondemos al usuario
     await update.message.reply_text(response_text, reply_markup=reply_markup)
@@ -120,9 +121,25 @@ async def text_and_voice_handler(update: Update, context: ContextTypes.DEFAULT_T
 
     user_response = update.message.text
     if update.message.voice:
-        # Here you would add the logic to transcribe the voice message
-        # For now, we'll just use a placeholder
-        user_response = "Voice message received (transcription not implemented yet)."
+        voice = update.message.voice
+        temp_dir = 'temp_files'
+        os.makedirs(temp_dir, exist_ok=True)
+        file_path = os.path.join(temp_dir, f"{voice.file_id}.ogg")
+
+        try:
+            voice_file = await context.bot.get_file(voice.file_id)
+            await voice_file.download_to_drive(file_path)
+            logger.info(f"Voice message saved to {file_path}")
+
+            user_response = transcribe_audio(file_path)
+            logger.info(f"Transcription result: '{user_response}'")
+
+        except Exception as e:
+            logger.error(f"Error during voice transcription: {e}")
+            user_response = "Error al procesar el mensaje de voz."
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
     result = flow_engine.handle_response(user_id, user_response)
 
