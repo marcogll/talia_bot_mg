@@ -1,12 +1,10 @@
 # 🤖 Talia Bot: Asistente Personal & Orquestador de Negocio
 
-Talia no es un simple chatbot; es un Middleware de Inteligencia Artificial que orquesta las operaciones diarias de administración, logística y ventas. Actúa como el puente central entre usuarios en Telegram y servicios críticos como Vikunja (Gestión de Proyectos), Google Calendar y Hardware de Impresión remota.
+Talia no es un simple chatbot; es un Middleware de Inteligencia Artificial alojado en un VPS que orquesta las operaciones diarias de administración, logística y ventas. Actúa como el puente central entre usuarios en Telegram y servicios críticos como Vikunja (Gestión de Proyectos), Google Calendar y Hardware de Impresión remota.
 
 ---
 
-## 🚀 Conceptos Centrales
-
-### 1. Enrutamiento por Identidad
+## 🚀 Concepto Central: Enrutamiento por Identidad
 
 La característica core de Talia es su capacidad de cambiar de personalidad y permisos dinámicamente basándose en el Telegram ID del usuario:
 
@@ -16,32 +14,60 @@ La característica core de Talia es su capacidad de cambiar de personalidad y pe
 | **Crew**  |  👷   | Equipo Operativo    | Limitado: Solicitud de agenda (validada), asignación de tareas, impresión de documentos. |
 | **Cliente** |  👤   | Usuario Público     | Ventas: Embudo de captación, consulta de servicios (RAG) y agendamiento comercial. |
 
-### 2. Motor de Flujos Conversacionales
-
-Toda la lógica de conversación del bot es impulsada por un motor de flujos genérico. En lugar de tener conversaciones codificadas, el bot interpreta definiciones de un archivo central `flows.json`.
-
-*   **`main.py`**: Contiene un `universal_handler` que captura todas las interacciones del usuario.
-*   **`flow_engine.py`**: Es el cerebro. Consulta el estado actual del usuario en la base de datos, lee el `flows.json` para determinar el siguiente paso y maneja la lógica de la conversación.
-*   **`flows.json`**: Un archivo JSON que define cada pregunta, botón y acción para todos los flujos de conversación, separados por rol. Esto permite modificar o añadir nuevas conversaciones sin cambiar el código principal.
-
 ---
 
 ## 🛠️ Arquitectura Técnica
 
 El sistema sigue un flujo modular:
 
-1.  **Input**: Telegram (Texto, Audio, Documentos, Botones).
-2.  **Transcripción**: `transcription.py` (Whisper) convierte voz a texto.
-3.  **Router**: `universal_handler` en `main.py` enruta la entrada al `FlowEngine`.
-4.  **Estado**: El `FlowEngine` consulta la tabla `conversations` en la base de datos para saber si el usuario está en medio de un flujo.
-5.  **Lógica**: El `FlowEngine` utiliza `flows.json` para procesar la entrada, recoger datos y determinar el siguiente paso.
-6.  **Resolución**: Una vez que un flujo se completa, `main.py` ejecuta la acción final (la "resolución") llamando al módulo correspondiente.
-7.  **Módulos de Acción (Tools)**:
-    *   **`vikunja.py`**: API asíncrona para leer/escribir tareas y proyectos.
-    *   **`calendar.py`**: API para crear eventos en Google Calendar.
-    *   **`mailer.py`**: Envío de correos (SMTP) para el flujo de impresión.
-    *   **`imap_listener.py`**: Escucha de confirmaciones de impresión (IMAP).
-    *   **`llm_engine.py`**: Análisis RAG para el embudo de ventas.
+1.  **Input**: Telegram (Texto o Audio).
+2.  **STT**: Whisper (Conversión de Audio a Texto).
+3.  **Router**: Verificación de ID contra la base de datos de usuarios.
+4.  **Cerebro (LLM)**: OpenAI (Fase 1) / Google Gemini (Fase 2).
+5.  **Tools**:
+    *   **Vikunja API**: Lectura/Escritura de tareas con filtrado de privacidad.
+    *   **Google Calendar API**: Gestión de tiempos y reglas de disponibilidad.
+    *   **SMTP/IMAP**: Comunicación bidireccional con impresoras.
+    *   **NFC Gen**: Codificación Base64 para tags físicos.
+
+---
+
+## 📋 Flujos de Trabajo (Features)
+
+### 1. 👑 Gestión Admin (Proyectos & Identidad)
+
+*   **Proyectos (Vikunja)**:
+    *   Resumen inteligente de estatus de proyectos.
+    *   Comandos naturales: *"Marca el proyecto de web como terminado y comenta que se envió factura"*.
+*   **Wizard de Identidad (NFC)**:
+    *   Flujo paso a paso para dar de alta colaboradores.
+    *   Genera JSON de registro y String Base64 listo para escribir en Tags NFC.
+    *   Inputs: Nombre, ID Empleado, Sucursal (Botones), Telegram ID.
+
+### 2. 👷 Gestión Crew (Agenda & Tareas)
+
+*   **Solicitud de Tiempo (Wizard)**:
+    *   Solicita espacios de 1 a 4 horas.
+    *   **Reglas de Negocio**:
+        *   No permite fechas > 3 meses a futuro.
+        *   **Gatekeeper**: Verifica Google Calendar. Si hay evento "Privado" del Admin, rechaza automáticamente.
+*   **Modo Buzón (Vikunja)**:
+    *   Crea tareas asignadas al Admin.
+    *   **Privacidad**: Solo pueden consultar el estatus de tareas creadas por ellos mismos.
+
+### 3. 🖨️ Sistema de Impresión Remota (Print Loop)
+
+*   Permite enviar archivos desde Telegram a la impresora física de la oficina.
+*   **Envío (SMTP)**: El bot envía el documento a un correo designado.
+*   **Tracking**: El asunto del correo lleva un hash único: `PJ:{uuid}#TID:{telegram_id}`.
+*   **Confirmación (IMAP Listener)**: Un proceso en background escucha la respuesta de la impresora y notifica al usuario en Telegram.
+
+### 4. 👤 Ventas Automáticas (RAG)
+
+*   Identifica usuarios nuevos (no registrados en la DB).
+*   Captura datos (Lead Magnet).
+*   Analiza ideas de clientes usando `servicios.json` (Base de conocimiento).
+*   Ofrece citas de ventas mediante link de Calendly.
 
 ---
 
@@ -49,59 +75,53 @@ El sistema sigue un flujo modular:
 
 ### Prerrequisitos
 
-*   Python 3.9+
-*   Docker y Docker Compose (recomendado)
+*   Python 3.10+
 *   Cuenta de Telegram Bot (@BotFather)
 *   Instancia de Vikunja (Self-hosted)
 *   Cuenta de Servicio Google Cloud (Calendar API)
 *   Servidor de Correo (SMTP/IMAP)
 
-### 1. Clonar y Entorno
+### 1. Clonar y Entorno Virtual
 
 ```bash
 git clone https://github.com/marcogll/talia_bot_mg.git
 cd talia_bot_mg
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 ### 2. Variables de Entorno (`.env`)
 
-Crea un archivo `.env` en la raíz del proyecto a partir de `.env.example` y rellena las siguientes variables:
+Crea un archivo `.env` en la raíz con la siguiente estructura:
 
 ```env
 # --- TELEGRAM & SECURITY ---
 TELEGRAM_BOT_TOKEN=tu_token_telegram
 ADMIN_ID=tu_telegram_id
-CREW_CHAT_IDS=id1,id2,id3
 
 # --- AI CORE ---
 OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-3.5-turbo
 
 # --- INTEGRACIONES ---
-VIKUNJA_BASE_URL=https://tu_vikunja.com/api/v1
+VIKUNJA_API_URL=https://tuservidor.com/api/v1
 VIKUNJA_TOKEN=tu_token_vikunja
-VIKUNJA_INBOX_PROJECT_ID=el_id_de_tu_proyecto_bandeja_de_entrada
-GOOGLE_SERVICE_ACCOUNT_FILE=google_key.json
-CALENDAR_ID=tu_id_de_google_calendar
+GOOGLE_CREDENTIALS_PATH=./data/credentials.json
 
-# --- PRINT SERVICE (SMTP/IMAP) ---
+# --- PRINT SERVICE ---
 SMTP_SERVER=smtp.hostinger.com
 SMTP_PORT=465
 SMTP_USER=print.service@vanityexperience.mx
-SMTP_PASSWORD=tu_password_smtp
+SMTP_PASS=tu_password_seguro
 IMAP_SERVER=imap.hostinger.com
-IMAP_USER=print.service@vanityexperience.mx
-IMAP_PASSWORD=tu_password_imap
-PRINTER_EMAIL=vanityprinter@print.epsonconnect.com
 ```
 
-### 3. Ejecutar con Docker
+### 3. Estructura de Datos
 
-La forma más sencilla de levantar el bot es con Docker Compose:
-
-```bash
-docker-compose up --build
-```
+Asegúrate de tener los archivos base en `talia_bot/data/`:
+*   `servicios.json`: Catálogo de servicios para el RAG de ventas.
+*   `credentials.json`: Credenciales de Google Cloud.
+*   `users.db`: Base de datos SQLite.
 
 ---
 
@@ -110,24 +130,22 @@ docker-compose up --build
 ```text
 talia_bot_mg/
 ├── talia_bot/
-│   ├── main.py              # Entry Point y Universal Handler
-│   ├── db.py                # Gestión de la base de datos (SQLite)
+│   ├── main.py              # Entry Point y Router de Identidad
+│   ├── db.py                # Gestión de la base de datos
 │   ├── config.py            # Carga de variables de entorno
 │   ├── modules/
-│   │   ├── flow_engine.py   # El cerebro que procesa los flujos
-│   │   ├── vikunja.py       # API Manager asíncrono para Tareas
-│   │   ├── calendar.py      # Lógica de Google Calendar
-│   │   ├── llm_engine.py    # Cliente OpenAI (Whisper y GPT)
-│   │   ├── transcription.py # Lógica de transcripción de audio
-│   │   ├── mailer.py        # Módulo para envío de correos (SMTP)
-│   │   └── imap_listener.py # Módulo para leer correos (IMAP)
+│   │   ├── identity.py      # Lógica de Roles y Permisos
+│   │   ├── llm_engine.py    # Cliente OpenAI/Gemini
+│   │   ├── vikunja.py       # API Manager para Tareas
+│   │   ├── calendar.py      # Google Calendar Logic & Rules
+│   │   ├── printer.py       # SMTP/IMAP Loop
+│   │   └── sales_rag.py     # Lógica de Ventas y Servicios
 │   └── data/
-│       ├── flows.json       # ¡IMPORTANTE! Define todas las conversaciones
-│       ├── services.json    # Base de conocimiento para ventas
+│       ├── servicios.json   # Base de conocimiento
+│       ├── credentials.json # Credenciales de Google
 │       └── users.db         # Base de datos de usuarios
-├── .env                     # Tus variables de entorno (NO subir a Git)
 ├── .env.example             # Plantilla de variables de entorno
-├── requirements.txt         # Dependencias de Python
+├── requirements.txt         # Dependencias
 ├── Dockerfile               # Configuración del contenedor
 └── docker-compose.yml       # Orquestador de Docker
 ```
@@ -136,13 +154,12 @@ talia_bot_mg/
 
 ## 🗓️ Roadmap
 
-- [x] **Implementado el Motor de Flujos Conversacionales.**
-- [x] **Integración completa de Vikunja, OpenAI y Google Calendar.**
-- [x] **Implementado el Loop de Confirmación de Impresión (IMAP).**
-- [ ] Mejorar el parsing de fechas y horas con lenguaje natural más avanzado.
+- [ ] Implementar Wizard de creación de Tags NFC (Base64).
+- [ ] Conectar Loop de Impresión (SMTP/IMAP).
 - [ ] Migrar de OpenAI a Google Gemini 1.5 Pro.
+- [ ] Implementar soporte para fotos en impresión.
 
 ---
 
 Desarrollado por: Marco G.
-Asistente Personalizado v2.1 (Ciclo de Impresión Completo)
+Asistente Personalizado v1.0

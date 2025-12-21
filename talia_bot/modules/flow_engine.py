@@ -25,13 +25,9 @@ class FlowEngine:
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             flow_data = json.load(f)
-                            # Asignar un rol basado en el prefijo del nombre del archivo, si existe
-                            if filename.startswith('admin_'):
-                                flow_data['role'] = 'admin'
-                            elif filename.startswith('crew_'):
-                                flow_data['role'] = 'crew'
-                            elif filename.startswith('client_'):
-                                flow_data['role'] = 'client'
+                            if 'role' not in flow_data:
+                                logger.warning(f"Flow {filename} is missing a 'role' key. Skipping.")
+                                continue
                             loaded_flows.append(flow_data)
                     except json.JSONDecodeError:
                         logger.error(f"Error decoding JSON from {filename}.")
@@ -47,10 +43,7 @@ class FlowEngine:
 
     def get_flow(self, flow_id):
         """Retrieves a specific flow by its ID."""
-        for flow in self.flows:
-            if flow['id'] == flow_id:
-                return flow
-        return None
+        return next((flow for flow in self.flows if flow.get('id') == flow_id), None)
 
     def get_conversation_state(self, user_id):
         """Gets the current conversation state for a user from the database."""
@@ -70,7 +63,8 @@ class FlowEngine:
     def start_flow(self, user_id, flow_id):
         """Starts a new flow for a user."""
         flow = self.get_flow(flow_id)
-        if not flow:
+        if not flow or 'steps' not in flow or not flow['steps']:
+            logger.error(f"Flow '{flow_id}' is invalid or has no steps.")
             return None
 
         initial_step = flow['steps'][0]
@@ -91,7 +85,6 @@ class FlowEngine:
     def handle_response(self, user_id, response_data):
         """
         Handles a user's response, saves the data, and returns the next action.
-        Returns a dictionary with the status and the next step or final data.
         """
         state = self.get_conversation_state(user_id)
         if not state:
@@ -106,40 +99,26 @@ class FlowEngine:
             self.end_flow(user_id)
             return {"status": "error", "message": "Current step not found in flow."}
 
-        # Save the user's response using the meaningful variable name
-        if 'variable' in current_step:
-            variable_name = current_step['variable']
+        # Save the user's response using the 'variable' key from the step definition
+        variable_name = current_step.get('variable')
+
+        if variable_name:
             state['collected_data'][variable_name] = response_data
         else:
-            logger.warning(f"Step {current_step['step_id']} in flow {flow['id']} has no 'variable' defined.")
+            # Fallback for steps without a 'variable' key
+            logger.warning(f"Step {current_step['step_id']} in flow {flow['id']} has no 'variable' defined. Saving with default key.")
             state['collected_data'][f"step_{current_step['step_id']}_response"] = response_data
+
 
         next_step_id = state['current_step_id'] + 1
         next_step = next((step for step in flow['steps'] if step['step_id'] == next_step_id), None)
 
         if next_step:
-            # Check if the next step is a resolution step, which ends the data collection
-            if next_step.get('input_type', '').startswith('resolution_'):
-                logger.info(f"Flow {state['flow_id']} reached resolution for user {user_id}.")
-                self.end_flow(user_id)
-                return {
-                    "status": "complete",
-                    "resolution": next_step,
-                    "data": state['collected_data']
-                }
-            else:
-                # It's a regular step, so update state and return it
-                self.update_conversation_state(user_id, state['flow_id'], next_step_id, state['collected_data'])
-                return {"status": "in_progress", "step": next_step}
+            self.update_conversation_state(user_id, state['flow_id'], next_step_id, state['collected_data'])
+            return {"status": "in_progress", "step": next_step}
         else:
-            # No more steps, the flow is complete
-            logger.info(f"Flow {state['flow_id']} ended for user {user_id}. Data: {state['collected_data']}")
             self.end_flow(user_id)
-            return {
-                "status": "complete",
-                "resolution": None,
-                "data": state['collected_data']
-            }
+            return {"status": "complete", "flow_id": flow['id'], "data": state['collected_data']}
 
     def end_flow(self, user_id):
         """Ends a flow for a user by deleting their conversation state."""

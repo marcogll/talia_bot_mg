@@ -32,20 +32,8 @@ def setup_database():
             )
         """)
 
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS conversations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                flow_id TEXT NOT NULL,
-                current_step_id INTEGER NOT NULL,
-                collected_data TEXT,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (telegram_id)
-            )
-        """)
-
         conn.commit()
-        logger.info("Database setup complete. 'users' and 'conversations' tables are ready.")
+        logger.info("Database setup complete. 'users' table is ready.")
     except sqlite3.Error as e:
         logger.error(f"Database error during setup: {e}")
     finally:

@@ -7,4 +7,3 @@ google-auth-oauthlib
 openai
 pytz
 python-dotenv
-python-dateutil
