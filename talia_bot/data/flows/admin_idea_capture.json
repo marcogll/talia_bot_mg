@@ -1,7 +1,8 @@
 {
   "id": "admin_idea_capture",
   "role": "admin",
-  "trigger_button": "💡 Capturar Idea",
+  "name": "💡 Capturar Idea",
+  "trigger_button": "capture_idea",
   "steps": [
     {
       "step_id": 0,

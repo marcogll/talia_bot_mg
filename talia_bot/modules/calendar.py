@@ -7,7 +7,7 @@ import logging
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from talia_bot.config import GOOGLE_SERVICE_ACCOUNT_FILE, CALENDAR_ID
+from talia_bot.config import GOOGLE_SERVICE_ACCOUNT_FILE, WORK_GOOGLE_CALENDAR_ID
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ service = build("calendar", "v3", credentials=creds)
 
 
 def get_available_slots(
-    start_time, end_time, duration_minutes=30, calendar_id=CALENDAR_ID
+    start_time, end_time, duration_minutes=30, calendar_id=WORK_GOOGLE_CALENDAR_ID
 ):
     """
     Busca espacios disponibles en el calendario dentro de un rango de tiempo.
@@ -84,7 +84,7 @@ def get_available_slots(
         return []
 
 
-def create_event(summary, start_time, end_time, attendees, calendar_id=CALENDAR_ID):
+def create_event(summary, start_time, end_time, attendees, calendar_id=WORK_GOOGLE_CALENDAR_ID):
     """
     Crea un nuevo evento (cita) en el calendario.
     
@@ -118,7 +118,7 @@ def create_event(summary, start_time, end_time, attendees, calendar_id=CALENDAR_
         return None
 
 
-def get_events(start_time, end_time, calendar_id=CALENDAR_ID):
+def get_events(start_time, end_time, calendar_id=WORK_GOOGLE_CALENDAR_ID):
     """
     Obtiene la lista de eventos entre dos momentos.
     """
