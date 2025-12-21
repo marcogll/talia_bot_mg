@@ -1,0 +1,13 @@
+{
+  "id": "crew_print_file",
+  "role": "crew",
+  "trigger_button": "🖨️ Imprimir",
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "UPLOAD_FILE",
+      "question": "Claro, envíame el archivo que necesitas imprimir y yo me encargo.",
+      "input_type": "document"
+    }
+  ]
+}

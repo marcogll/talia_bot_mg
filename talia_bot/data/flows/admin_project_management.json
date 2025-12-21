@@ -1,0 +1,31 @@
+{
+  "id": "admin_project_management",
+  "role": "admin",
+  "trigger_button": "🏗️ Ver Proyectos",
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "PROJECT_SELECT",
+      "question": "Aquí está el tablero de ajedrez...",
+      "input_type": "dynamic_keyboard_vikunja_projects"
+    },
+    {
+      "step_id": 1,
+      "variable": "TASK_SELECT",
+      "question": "Has seleccionado el proyecto {project_name}. ¿Qué quieres hacer?",
+      "input_type": "dynamic_keyboard_vikunja_tasks"
+    },
+    {
+      "step_id": 2,
+      "variable": "ACTION_TYPE",
+      "question": "¿Cuál es la jugada?",
+      "options": ["🔄 Actualizar Estatus", "💬 Agregar Comentario"]
+    },
+    {
+      "step_id": 3,
+      "variable": "UPDATE_CONTENT",
+      "question": "Adelante. Soy todo oídos.",
+      "input_type": "text_or_audio"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "admin_idea_capture",
+  "role": "admin",
+  "trigger_button": "💡 Capturar Idea",
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "IDEA_CONTENT",
+      "question": "Te escucho. 💡 Las ideas vuelan...",
+      "input_type": "text_or_audio"
+    },
+    {
+      "step_id": 1,
+      "variable": "IDEA_CATEGORY",
+      "question": "¿En qué cajón mental guardamos esto?",
+      "options": ["💰 Negocio", "📹 Contenido", "👤 Personal"]
+    },
+    {
+      "step_id": 2,
+      "variable": "IDEA_ACTION",
+      "question": "¿Cuál es el plan de ataque?",
+      "options": ["✅ Crear Tarea", "📓 Guardar Nota"]
+    }
+  ]
+}

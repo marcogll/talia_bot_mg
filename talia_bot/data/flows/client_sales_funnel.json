@@ -1,0 +1,25 @@
+{
+  "id": "client_sales_funnel",
+  "role": "client",
+  "trigger_automatic": true,
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "CLIENT_NAME",
+      "question": "Hola. Soy Talia, la mano derecha de Armando. ✨Él está ocupado creando, pero yo soy la puerta de entrada. ¿Con quién tengo el gusto?",
+      "input_type": "text"
+    },
+    {
+      "step_id": 1,
+      "variable": "CLIENT_INDUSTRY",
+      "question": "Mucho gusto, {user_name}. Para entender mejor tus necesidades, ¿cuál es el giro de tu negocio o tu industria?",
+      "options": ["🍽️ Restaurantes", "🩺 Salud", "🛍️ Retail", "อื่น ๆ"]
+    },
+    {
+      "step_id": 2,
+      "variable": "IDEA_PITCH",
+      "question": "Excelente. Ahora, el escenario es tuyo. 🎤 Cuéntame sobre tu proyecto o la idea que tienes en mente. No te guardes nada. Puedes escribirlo o, si prefieres, enviarme una nota de voz.",
+      "input_type": "text_or_audio"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "admin_create_nfc_tag",
+  "role": "admin",
+  "trigger_button": "➕ Crear Tag NFC",
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "NFC_ACTION_TYPE",
+      "question": "Creemos un nuevo tag NFC. ¿Qué acción quieres que dispare?",
+      "options": ["Iniciar Flujo", "URL Estática"]
+    },
+    {
+      "step_id": 1,
+      "variable": "NFC_FLOW_CHOICE",
+      "question": "Okay, ¿qué flujo debería iniciar este tag?",
+      "input_type": "dynamic_keyboard_flows"
+    },
+    {
+      "step_id": 2,
+      "variable": "NFC_CONFIRM",
+      "question": "Perfecto. Cuando acerques tu teléfono a este tag, se iniciará el flujo '{flow_name}'. Aquí tienes los datos para escribir en el tag: {NFC_DATA}",
+      "options": ["✅ Hecho"]
+    }
+  ]
+}

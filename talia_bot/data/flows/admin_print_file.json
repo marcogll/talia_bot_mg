@@ -1,0 +1,13 @@
+{
+  "id": "admin_print_file",
+  "role": "admin",
+  "trigger_button": "🖨️ Imprimir",
+  "steps": [
+    {
+      "step_id": 0,
+      "variable": "UPLOAD_FILE",
+      "question": "Por favor, envíame el archivo que quieres imprimir.",
+      "input_type": "document"
+    }
+  ]
+}
