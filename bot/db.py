@@ -15,16 +15,32 @@ local = threading.local()
 
 def get_db_connection():
     """Creates a connection to the SQLite database."""
-    if not hasattr(local, "conn"):
-        local.conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
-        local.conn.row_factory = sqlite3.Row
+    if hasattr(local, "conn"):
+        try:
+            # Check if connection is open
+            local.conn.execute("SELECT 1")
+            logger.debug("Reusing existing database connection")
+            return local.conn
+        except sqlite3.ProgrammingError:
+            logger.warning("Detected closed connection in thread-local storage. Recreating.")
+            del local.conn
+    
+    logger.debug("Creating new database connection")
+    local.conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
+    local.conn.row_factory = sqlite3.Row
     return local.conn
 
 def close_db_connection():
     """Closes the database connection."""
     if hasattr(local, "conn"):
-        local.conn.close()
-        del local.conn
+        logger.debug("Closing database connection")
+        try:
+            local.conn.close()
+        except Exception as e:
+            logger.error(f"Error closing database connection: {e}")
+        finally:
+            if hasattr(local, "conn"):
+                del local.conn
 
 def setup_database():
     """Sets up the database tables if they don't exist."""

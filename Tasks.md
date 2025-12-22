@@ -100,6 +100,22 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Description**: `identity.py:42` string comparison for ADMIN_ID could fail if numeric
 - **Action needed**: Fix type handling for user ID comparison
 
+### [BUG-004] Missing sqlite3 import
+- **Status**: DONE
+- **Priority**: High
+- **Description**: `flow_engine.py` missing `sqlite3` import causing NameError
+- **Files affected**: `flow_engine.py`
+- **Action needed**: Add `import sqlite3`
+- **Due**: ASAP
+
+### [BUG-005] Telegram Conflict Error
+- **Status**: DONE
+- **Priority**: High
+- **Description**: `telegram.error.Conflict` indicates multiple bot instances running
+- **Files affected**: Runtime
+- **Action needed**: Kill all orphan processes and restart
+- **Due**: ASAP
+
 ## **Documentation & Testing** 📚
 
 ### [DOC-001] Documentation Consistency

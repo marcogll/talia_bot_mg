@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import sqlite3
 from bot.db import get_db_connection
 from bot.modules.sales_rag import generate_sales_pitch
 from bot.modules.nfc_tag import generate_nfc_tag
