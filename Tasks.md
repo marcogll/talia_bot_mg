@@ -101,7 +101,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Action needed**: Fix type handling for user ID comparison
 
 ### [BUG-004] Missing sqlite3 import
-- **Status**: DONE
+- **Status**: TODO
 - **Priority**: High
 - **Description**: `flow_engine.py` missing `sqlite3` import causing NameError
 - **Files affected**: `flow_engine.py`
