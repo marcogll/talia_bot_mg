@@ -5,6 +5,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 ## **Critical Security Issues** 🔴
 
 ### [SEC-001] File Upload Security Validation
+- **Status**: DONE
 - **Priority**: High
 - **Description**: `handle_document()` in main.py:168 accepts any file type without validation
 - **Files affected**: `main.py`
@@ -28,6 +29,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 ## **Missing Implementations** 🟡
 
 ### [IMP-001] Whisper Transcription Agent
+- **Status**: DONE
 - **Priority**: High
 - **Description**: AGENTS.md states Whisper agent is "Inexistente" but code references it
 - **Files affected**: Need to create `transcription.py`
@@ -104,6 +106,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [DEP-002] Package Security Updates
+- **Status**: DONE
 - **Priority**: High
 - **Description**: `python-telegram-bot[job-queue]<22` using outdated version constraint
 - **Files affected**: `requirements.txt`
@@ -168,9 +171,9 @@ This document tracks all pending tasks, improvements, and issues identified in t
 ## **Sprint Planning**
 
 ### **Current Sprint (High Priority)**
-- [SEC-001] File upload security validation
-- [DEP-002] Package security updates  
-- [IMP-001] Whisper transcription agent
+- **[DONE]** [SEC-001] File upload security validation
+- **[DONE]** [DEP-002] Package security updates
+- **[DONE]** [IMP-001] Whisper transcription agent
 
 ### **Next Sprint (Medium Priority)**
 - [SEC-002] Secret management implementation
