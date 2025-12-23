@@ -1,29 +1,36 @@
 # bot/modules/onboarding.py
-# Este módulo maneja la primera interacción con el usuario (el comando /start).
-# Se encarga de mostrar un menú diferente según quién sea el usuario (admin, crew o cliente).
-
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
-def get_admin_menu(flow_engine):
-    """Crea el menú de botones principal para los Administradores."""
-    keyboard = [
-        [InlineKeyboardButton("👑 Revisar Pendientes", callback_data='view_pending')],
-        [InlineKeyboardButton("📅 Agenda", callback_data='view_agenda')],
-    ]
+def get_dynamic_menu(user_role, flow_engine):
+    """
+    Creates a dynamic button menu based on the user's role.
+    It filters the available flows and shows only the ones that:
+    1. Match the user's role.
+    2. Contain a 'trigger_button' key, indicating they can be started from a menu.
+    """
+    keyboard = []
 
-    # Dynamic buttons from flows
+    # Add role-specific static buttons first, if any.
+    if user_role == "admin":
+        keyboard.append([InlineKeyboardButton("👑 Revisar Pendientes", callback_data='view_pending')])
+        keyboard.append([InlineKeyboardButton("📅 Agenda", callback_data='view_agenda')])
+
+    # Dynamically add buttons from flows
     if flow_engine:
         for flow in flow_engine.flows:
-            if flow.get("role") == "admin" and "trigger_button" in flow and "name" in flow:
+            # Check if the flow is for the user's role and has a trigger button
+            if flow.get("role") == user_role and "trigger_button" in flow and "name" in flow:
                 button = InlineKeyboardButton(flow["name"], callback_data=flow["trigger_button"])
                 keyboard.append([button])
 
-    keyboard.append([InlineKeyboardButton("▶️ Más opciones", callback_data='admin_menu')])
+    # Add secondary menu button for admins
+    if user_role == "admin":
+        keyboard.append([InlineKeyboardButton("▶️ Más opciones", callback_data='admin_menu')])
 
     return InlineKeyboardMarkup(keyboard)
 
 def get_admin_secondary_menu():
-    """Crea el menú secundario para Administradores."""
+    """Creates the secondary menu for Administrators."""
     text = "Aquí tienes más opciones de administración:"
     keyboard = [
         [InlineKeyboardButton("📋 Gestionar Tareas (Vikunja)", callback_data='manage_vikunja')],
@@ -33,33 +40,10 @@ def get_admin_secondary_menu():
     reply_markup = InlineKeyboardMarkup(keyboard)
     return text, reply_markup
 
-def get_crew_menu():
-    """Crea el menú de botones para los Miembros del Equipo."""
-    keyboard = [
-        [InlineKeyboardButton("🕒 Proponer actividad", callback_data='propose_activity')],
-        [InlineKeyboardButton("📄 Ver estatus de solicitudes", callback_data='view_requests_status')],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
-def get_client_menu():
-    """Crea el menú de botones para los Clientes externos."""
-    keyboard = [
-        [InlineKeyboardButton("🗓️ Agendar una cita", callback_data='schedule_appointment')],
-        [InlineKeyboardButton("ℹ️ Información de servicios", callback_data='get_service_info')],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
 def handle_start(user_role, flow_engine=None):
     """
-    Decide qué mensaje y qué menú mostrar según el rol del usuario.
+    Decides which message and menu to show based on the user's role.
     """
     welcome_message = "Hola, soy Talía. ¿En qué puedo ayudarte hoy?"
-
-    if user_role == "admin":
-        menu = get_admin_menu(flow_engine)
-    elif user_role == "crew":
-        menu = get_crew_menu()
-    else:
-        menu = get_client_menu()
-
+    menu = get_dynamic_menu(user_role, flow_engine)
     return welcome_message, menu

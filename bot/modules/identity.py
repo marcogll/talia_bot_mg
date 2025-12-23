@@ -39,8 +39,13 @@ def get_user_role(telegram_id):
     Roles: 'admin', 'crew', 'client'.
     """
     # El admin principal se define en el .env para el primer arranque
-    if str(telegram_id) == ADMIN_ID:
-        return 'admin'
+    # Se convierten ambos a int para una comparación segura de tipos.
+    try:
+        if int(telegram_id) == int(ADMIN_ID):
+            return 'admin'
+    except (ValueError, TypeError):
+        logger.warning("ADMIN_ID no es un número válido. Ignorando la comparación.")
+        pass
 
     try:
         conn = get_db_connection()

@@ -23,7 +23,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Priority**: High
 
 ### [IMP-002] Dynamic Menu Generation
-- **Status**: TODO
+- **Status**: DONE
 - **Priority**: Medium
 - **Description**: `onboarding.py` has hardcoded menus instead of dynamic generation
 - **Action needed**: Implement dynamic menu generation based on user roles
@@ -45,7 +45,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Priority**: Medium
 
 ### [ARCH-003] Code Duplication
-- **Status**: TODO
+- **Status**: DONE
 - **Priority**: Low
 - **Description**: Database connection patterns repeated, similar menu generation logic
 - **Action needed**: Create shared utilities and base classes
@@ -63,7 +63,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Action needed**: Implement streaming file processing and cleanup mechanisms
 
 ### [PERF-003] Flow Engine Memory Usage
-- **Status**: TODO
+- **Status**: DONE
 - **Priority**: Low
 - **Description**: Flow engine stores all conversation data in memory
 - **Action needed**: Implement conversation state persistence and cleanup
@@ -79,7 +79,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Priority**: High
 
 ### [DEP-003] Docker Security Hardening
-- **Status**: TODO
+- **Status**: DONE
 - **Priority**: Medium
 - **Description**: Running as root user, missing security hardening
 - **Action needed**: Add USER directive, read-only filesystem, health checks
@@ -95,13 +95,13 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Priority**: Medium
 
 ### [BUG-003] Identity Module String Comparison
-- **Status**: TODO
+- **Status**: DONE
 - **Priority**: Low
 - **Description**: `identity.py:42` string comparison for ADMIN_ID could fail if numeric
 - **Action needed**: Fix type handling for user ID comparison
 
 ### [BUG-004] Missing sqlite3 import
-- **Status**: TODO
+- **Status**: DONE
 - **Priority**: High
 - **Description**: `flow_engine.py` missing `sqlite3` import causing NameError
 - **Files affected**: `flow_engine.py`
@@ -125,10 +125,10 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Action needed**: Update documentation to match actual implementation
 
 ### [TEST-001] Test Coverage
-- **Status**: TODO
+- **Status**: IN_PROGRESS
 - **Priority**: Low
-- **Description**: Missing comprehensive test coverage
-- **Action needed**: Add unit tests, integration tests, and E2E tests
+- **Description**: Initial unit tests for `FlowEngine` have been added. The test suite needs to be expanded to cover other modules.
+- **Action needed**: Continue adding unit tests for other critical modules like `ButtonDispatcher` and `Identity`.
 
 ### [TEST-002] Code Quality Tools
 - **Status**: TODO
